@@ -8,3 +8,9 @@ export type Quote = {
   quote: string;
   author: string;
 };
+
+export type TodoList = {
+  id: string;
+  name: string;
+  tasks: Task[];
+};

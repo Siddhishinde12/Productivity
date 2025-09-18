@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type Dispatch, type SetStateAction, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 type TaskListProps = {
   tasks: Task[];
-  setTasks: Dispatch<SetStateAction<Task[]>>;
+  setTasks: (tasks: Task[]) => void;
 };
 
 export default function TaskList({ tasks, setTasks }: TaskListProps) {

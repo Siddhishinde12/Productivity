@@ -42,7 +42,8 @@ export default function ProductivityTips({ tasks }: ProductivityTipsProps) {
         setTips([]);
       }
     });
-  }, [tasks, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks]);
 
   return (
     <Card>
