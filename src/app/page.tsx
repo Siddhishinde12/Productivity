@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { type Task, type TodoList as TodoListType } from '@/types';
-import Logo from '@/components/logo';
 import {
   SidebarProvider,
   Sidebar,
@@ -13,9 +12,8 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter,
 } from '@/components/ui/sidebar';
-import { List, Plus, Search, Settings2, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, DollarSign } from 'lucide-react';
+import { Plus, Search, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -27,7 +25,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -65,6 +62,8 @@ export default function Home() {
           { id: '6', text: 'Wireframe - RTGO Projects', completed: false, date: '2025-04-07T11:00:00', duration: 120, color: 'cyan' },
         ],
       };
+      // Set a date that works with the default tasks
+      setCurrentDate(new Date('2025-04-01'));
       setLists([defaultList]);
       setActiveListId(defaultList.id);
     } else if (!activeListId || !lists.some(l => l.id === activeListId)) {
@@ -99,7 +98,7 @@ export default function Home() {
 
   const weekDays = useMemo(() => {
     const startOfWeek = new Date(currentDate);
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1); // Start from Monday
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Start from Sunday
     return Array.from({ length: 7 }).map((_, i) => {
       const day = new Date(startOfWeek);
       day.setDate(day.getDate() + i);
@@ -116,6 +115,12 @@ export default function Home() {
     yellow: 'bg-yellow-100 border-yellow-300',
     cyan: 'bg-cyan-100 border-cyan-300',
   };
+
+  const getTaskTimeSpan = (task: Task) => {
+    const startTime = new Date(task.date as string);
+    const endTime = new Date(startTime.getTime() + (task.duration as number) * 60000);
+    return `${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }
 
   return (
     <SidebarProvider>
@@ -196,11 +201,11 @@ export default function Home() {
           <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => setCurrentDate(d => new Date(d.setDate(d.getDate() - 7)))}><ChevronLeft className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="icon" onClick={() => setCurrentDate(d => { const newDate = new Date(d); newDate.setDate(d.getDate() - 7); return newDate; })}><ChevronLeft className="h-4 w-4" /></Button>
                   <Button variant="ghost">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</Button>
-                  <Button variant="outline" size="icon" onClick={() => setCurrentDate(d => new Date(d.setDate(d.getDate() + 7)))}><ChevronRight className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="icon" onClick={() => setCurrentDate(d => { const newDate = new Date(d); newDate.setDate(d.getDate() + 7); return newDate; })}><ChevronRight className="h-4 w-4" /></Button>
                 </div>
-                 <Button variant="outline">
+                 <Button variant="outline" onClick={() => setCurrentDate(new Date())}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   Today
                 </Button>
@@ -209,7 +214,7 @@ export default function Home() {
             <div className="grid grid-cols-[auto,1fr] flex-1">
                 <div className="pr-4 border-r">
                     {timeSlots.map(time => (
-                        <div key={time} className="h-24 text-right text-sm text-muted-foreground pr-2 pt-1">{time}</div>
+                        <div key={time} className="h-24 text-right text-sm text-muted-foreground pr-2 -mt-3 pt-4">{time}</div>
                     ))}
                 </div>
 
@@ -220,7 +225,7 @@ export default function Home() {
                                 <p className="text-sm font-medium">{day.getDate()}</p>
                                 <p className="text-xs text-muted-foreground">{dayNames[day.getDay()]}</p>
                             </div>
-                            <div className="h-full">
+                            <div className="h-full relative">
                                 {activeList?.tasks.filter(task => new Date(task.date as string).toDateString() === day.toDateString())
                                 .map(task => {
                                     const taskDate = new Date(task.date as string);
@@ -231,7 +236,7 @@ export default function Home() {
                                              className={`absolute w-[95%] left-1/2 -translate-x-1/2 p-2 rounded-lg border text-xs ${colorMap[task.color as string] || 'bg-gray-100'}`}
                                              style={{ top: `${top}rem`, height: `${height}rem` }}>
                                              <p className="font-semibold">{task.text}</p>
-                                             <p>{taskDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                                             <p className="text-gray-600">{getTaskTimeSpan(task)}</p>
                                         </div>
                                     )
                                 })}
