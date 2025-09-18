@@ -61,12 +61,12 @@ export default function Home() {
             id: Date.now().toString(),
             name: 'Odama Team',
             tasks: [
-            { id: '1', text: 'Moodboarding - Showtime Project', completed: false, date: '2025-04-01T07:30:00', duration: 210, color: 'pink' },
-            { id: '2', text: 'Wireframe - Altafluent Project', completed: false, date: '2025-04-02T08:00:00', duration: 120, color: 'blue' },
-            { id: '3', text: 'Exploration Design - Odama Shot', completed: false, date: '2025-04-04T07:30:00', duration: 150, color: 'blue' },
-            { id: '4', text: 'Feedback - BigLeads Projects', completed: false, date: '2025-04-06T08:00:00', duration: 120, color: 'green' },
-            { id: '5', text: 'Feedback - Altafluent Projects', completed: false, date: '2025-04-06T10:00:00', duration: 120, color: 'yellow' },
-            { id: '6', text: 'Wireframe - RTGO Projects', completed: false, date: '2025-04-07T11:00:00', duration: 120, color: 'cyan' },
+            { id: '1', text: 'Moodboarding - Showtime Project', completed: false, date: '2025-04-01T07:30:00', duration: 210, color: 'hsl(330, 80%, 90%)' },
+            { id: '2', text: 'Wireframe - Altafluent Project', completed: false, date: '2025-04-02T08:00:00', duration: 120, color: 'hsl(210, 80%, 90%)' },
+            { id: '3', text: 'Exploration Design - Odama Shot', completed: false, date: '2025-04-04T07:30:00', duration: 150, color: 'hsl(210, 80%, 90%)' },
+            { id: '4', text: 'Feedback - BigLeads Projects', completed: false, date: '2025-04-06T08:00:00', duration: 120, color: 'hsl(120, 60%, 90%)' },
+            { id: '5', text: 'Feedback - Altafluent Projects', completed: false, date: '2025-04-06T10:00:00', duration: 120, color: 'hsl(60, 80%, 90%)' },
+            { id: '6', text: 'Wireframe - RTGO Projects', completed: false, date: '2025-04-07T11:00:00', duration: 120, color: 'hsl(180, 80%, 90%)' },
             ],
         };
         // Set a date that works with the default tasks
@@ -116,14 +116,6 @@ export default function Home() {
 
   const timeSlots = Array.from({ length: 8 }, (_, i) => `${(i + 7).toString().padStart(2, '0')}:00`);
 
-  const colorMap: { [key: string]: string } = {
-    pink: 'bg-pink-100 border-pink-300',
-    blue: 'bg-blue-100 border-blue-300',
-    green: 'bg-green-100 border-green-300',
-    yellow: 'bg-yellow-100 border-yellow-300',
-    cyan: 'bg-cyan-100 border-cyan-300',
-  };
-
   const getTaskTimeSpan = (task: Task) => {
     const startTime = new Date(task.date as string);
     const endTime = new Date(startTime.getTime() + (task.duration as number) * 60000);
@@ -136,7 +128,7 @@ export default function Home() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full flex-col bg-muted/40">
+      <div className="flex min-h-screen w-full flex-col">
         <Sidebar>
           <SidebarContent className="p-0">
             <SidebarHeader className="p-4 border-b">
@@ -245,8 +237,8 @@ export default function Home() {
                                     const height = (task.duration as number / 60) * 6;
                                     return (
                                         <div key={task.id} 
-                                             className={`absolute w-[95%] left-1/2 -translate-x-1/2 p-2 rounded-lg border text-xs ${colorMap[task.color as string] || 'bg-gray-100'}`}
-                                             style={{ top: `${top}rem`, height: `${height}rem` }}>
+                                             className="absolute w-[95%] left-1/2 -translate-x-1/2 p-2 rounded-lg border text-xs"
+                                             style={{ top: `${top}rem`, height: `${height}rem`, backgroundColor: task.color, borderColor: task.color ? `hsl(from ${task.color} h s calc(l - 10%))` : 'hsl(var(--border))' }}>
                                              <p className="font-semibold">{task.text}</p>
                                              <p className="text-gray-600">{getTaskTimeSpan(task)}</p>
                                         </div>
