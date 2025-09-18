@@ -126,31 +126,6 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 h-full">
-        <aside className="w-80 flex-shrink-0 border-r bg-card p-4">
-            <h2 className="text-lg font-semibold tracking-tight mb-4">{activeList?.name || 'My Tasks'}</h2>
-             <ScrollArea className="h-[calc(100vh-100px)]">
-                 <div className="space-y-2">
-                     {allTasks.sort((a,b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1)).map(task => (
-                        <div key={task.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted">
-                            <Checkbox 
-                                id={`task-${task.id}`}
-                                checked={task.completed} 
-                                onCheckedChange={() => handleToggleTask(task.id)}
-                            />
-                            <label
-                                htmlFor={`task-${task.id}`}
-                                className={cn(
-                                    "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-                                    task.completed && "line-through text-muted-foreground"
-                                )}
-                            >
-                            {task.text}
-                            </label>
-                      </div>
-                     ))}
-                 </div>
-            </ScrollArea>
-      </aside>
       <div className="flex flex-1 flex-col">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4 sm:px-6">
           <div className="flex items-center gap-4">
@@ -227,6 +202,31 @@ export default function Home() {
           </div>
         </main>
       </div>
+       <aside className="w-80 flex-shrink-0 border-l bg-card p-4">
+            <h2 className="text-lg font-semibold tracking-tight mb-4">{activeList?.name || 'My Tasks'}</h2>
+             <ScrollArea className="h-[calc(100vh-100px)]">
+                 <div className="space-y-2">
+                     {allTasks.sort((a,b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1)).map(task => (
+                        <div key={task.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted">
+                            <Checkbox 
+                                id={`task-${task.id}`}
+                                checked={task.completed} 
+                                onCheckedChange={() => handleToggleTask(task.id)}
+                            />
+                            <label
+                                htmlFor={`task-${task.id}`}
+                                className={cn(
+                                    "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+                                    task.completed && "line-through text-muted-foreground"
+                                )}
+                            >
+                            {task.text}
+                            </label>
+                      </div>
+                     ))}
+                 </div>
+            </ScrollArea>
+      </aside>
     </div>
   );
 }
