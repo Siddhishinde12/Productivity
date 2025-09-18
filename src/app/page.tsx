@@ -55,7 +55,7 @@ export default function Home() {
   }, [isClient, lists, setLists, activeListId, setActiveListId]);
 
   const activeList = useMemo(
-    () => lists.find(list => list.id === activeListId) ?? lists[0],
+    () => lists.find(list => list.id === activeListId),
     [lists, activeListId]
   );
   
@@ -67,10 +67,7 @@ export default function Home() {
 
   const allTasks = useMemo(() => {
     if (!isClient || !activeList) return [];
-    return activeList.tasks.map(task => ({
-        ...task,
-        listName: activeList.name,
-      }));
+    return activeList.tasks;
   }, [activeList, isClient]);
 
   const getTasksForDay = useCallback(
@@ -130,7 +127,7 @@ export default function Home() {
   return (
     <div className="flex flex-1 h-full">
         <aside className="w-80 flex-shrink-0 border-r bg-card p-4">
-            <h2 className="text-lg font-semibold tracking-tight mb-4">Tasks</h2>
+            <h2 className="text-lg font-semibold tracking-tight mb-4">{activeList?.name || 'My Tasks'}</h2>
              <ScrollArea className="h-[calc(100vh-100px)]">
                  <div className="space-y-2">
                      {allTasks.sort((a,b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1)).map(task => (
@@ -214,11 +211,12 @@ export default function Home() {
                         key={task.id}
                         className={cn(
                           'absolute w-[95%] ml-[2.5%] p-2 rounded-lg border text-xs shadow-md',
-                          'bg-primary/20 border-primary/50 text-primary-foreground'
+                          'bg-primary/20 border-primary/50 text-primary-foreground',
+                           task.completed && 'opacity-50 bg-secondary border-secondary/50'
                         )}
                         style={getTaskPosition(task)}
                       >
-                        <p className="font-bold">{task.text}</p>
+                        <p className={cn("font-bold", task.completed && "line-through")}>{task.text}</p>
                         <p>{format(new Date(task.date!), 'h:mm a')} ({task.duration} min)</p>
                       </div>
                     ))}
