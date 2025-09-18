@@ -1,6 +1,15 @@
 'use client';
 
-import { BarChart, DollarSign, Target, TrendingUp } from 'lucide-react';
+import {
+  BarChart,
+  Briefcase,
+  Dumbbell,
+  DollarSign,
+  PiggyBank,
+  Target,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -100,9 +109,7 @@ export default function DashboardPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Money Saved
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Money Saved</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -135,6 +142,56 @@ export default function DashboardPage() {
               <div className="text-2xl font-bold">$120,000</div>
               <p className="text-xs text-muted-foreground">
                 +10% year to date
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Projects Completed
+              </CardTitle>
+              <Briefcase className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">12</div>
+              <p className="text-xs text-muted-foreground">
+                +2 since last month
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">SIP Savings</CardTitle>
+              <PiggyBank className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">$5,400</div>
+              <p className="text-xs text-muted-foreground">
+                Total investment value
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Losses</CardTitle>
+              <TrendingDown className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">-$215</div>
+              <p className="text-xs text-muted-foreground">
+                This month
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Gym Tracker</CardTitle>
+              <Dumbbell className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">3/5</div>
+              <p className="text-xs text-muted-foreground">
+                Workouts this week
               </p>
             </CardContent>
           </Card>
