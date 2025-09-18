@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
-import TaskCard from './task-card';
+import TaskRow from './task-row';
 
 interface TaskListProps {
   title: string;
@@ -56,7 +56,7 @@ export default function TaskList({
           </form>
         )}
       </CardHeader>
-      <CardContent className="flex-1 space-y-4 overflow-auto p-4">
+      <CardContent className="flex-1 overflow-auto p-4">
         {tasks.length === 0 && (
            <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 py-12 text-center h-full">
             <h3 className="text-lg font-semibold tracking-tight">All clear!</h3>
@@ -65,27 +65,25 @@ export default function TaskList({
             </p>
           </div>
         )}
-        {uncompletedTasks.length > 0 && (
-          <div className="space-y-2">
+        <div className="space-y-1">
             {uncompletedTasks.map(task => (
-              <TaskCard
+              <TaskRow
                 key={task.id}
                 task={task}
                 onToggle={onToggleTask}
                 onDelete={onDeleteTask}
               />
             ))}
-          </div>
-        )}
+        </div>
 
         {completedTasks.length > 0 && (
-          <div>
+          <div className="mt-6">
             <h3 className="mb-2 text-sm font-medium text-muted-foreground">
               Completed ({completedTasks.length})
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {completedTasks.map(task => (
-                <TaskCard
+                <TaskRow
                   key={task.id}
                   task={task}
                   onToggle={onToggleTask}
