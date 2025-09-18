@@ -180,7 +180,7 @@ export default function Home() {
                         style={getTaskPosition(task)}
                       >
                         <p className="font-bold">{task.text}</p>
-                        <p>{format(new Date(task.date!), 'h:mm a')}</p>
+                        <p>{format(new Date(task.date!), 'h:mm a')} ({task.duration} min)</p>
                       </div>
                     ))}
                   </div>
