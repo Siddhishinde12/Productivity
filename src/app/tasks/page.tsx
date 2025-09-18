@@ -18,9 +18,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
-import TaskList from '@/components/task-list';
-import { Plus, Calendar as CalendarIcon } from 'lucide-react';
-import { isToday, isFuture, format } from 'date-fns';
+import { Plus, Calendar as CalendarIcon, CheckCircle2, ListTodo } from 'lucide-react';
+import { isToday, isFuture, format, isPast } from 'date-fns';
 import { cn } from '@/lib/utils';
 import TaskCard from '@/components/task-card';
 
@@ -66,7 +65,7 @@ export default function TasksPage() {
   const todayTasks = useMemo(() => {
     if (!activeList) return [];
     return activeList.tasks
-      .filter(task => task.date && isToday(new Date(task.date)))
+      .filter(task => task.date && isToday(new Date(task.date)) && !isPast(new Date(task.date)))
       .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date!).getTime() - new Date(b.date!).getTime());
   }, [activeList]);
 
@@ -75,6 +74,13 @@ export default function TasksPage() {
     return activeList.tasks
       .filter(task => task.date && isFuture(new Date(task.date)) && !isToday(new Date(task.date)))
        .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date!).getTime() - new Date(b.date!).getTime());
+  }, [activeList]);
+
+  const pastTasks = useMemo(() => {
+    if (!activeList) return [];
+    return activeList.tasks
+      .filter(task => task.date && isPast(new Date(task.date)) && !isToday(new Date(task.date)))
+       .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(b.date!).getTime() - new Date(a.date!).getTime());
   }, [activeList]);
 
 
@@ -101,6 +107,10 @@ export default function TasksPage() {
         : list
     );
     setLists(updatedLists);
+    toast({
+        title: 'Task Added!',
+        description: 'Your new task has been added successfully.',
+    })
     return true;
   };
 
@@ -127,43 +137,57 @@ export default function TasksPage() {
         : list
     );
     setLists(updatedLists);
+     toast({
+        variant: 'destructive',
+        title: 'Task Deleted',
+        description: 'The task has been removed.',
+    })
   };
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       <header className="sticky top-0 z-10 flex h-[60px] items-center justify-between border-b bg-background px-4 md:px-6">
         <h1 className="text-2xl font-semibold text-foreground">
           My Tasks
         </h1>
         <AddTaskDialog onAddTask={handleAddTask} />
       </header>
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10 overflow-auto">
-        <div className="mx-auto w-full max-w-4xl">
-          {isClient && activeList ? (
-            <div className='space-y-8'>
-              <TaskList
-                title="Today's Tasks"
-                tasks={todayTasks || []}
+      <main className="flex-1 overflow-auto p-4 md:p-8 bg-muted/20">
+        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-3">
+          
+          <div className="lg:col-span-2 space-y-8">
+            <TaskSection 
+                title="Today"
+                tasks={todayTasks}
                 onToggleTask={handleToggleTask}
                 onDeleteTask={handleDeleteTask}
-                showInput={false}
-              />
-              <TaskList
+                icon={<CheckCircle2 className="h-6 w-6 text-primary" />}
+                emptyMessage="No tasks for today. Enjoy your day!"
+            />
+             <TaskSection 
                 title="Upcoming"
-                tasks={upcomingTasks || []}
+                tasks={upcomingTasks}
                 onToggleTask={handleToggleTask}
                 onDeleteTask={handleDeleteTask}
-                showInput={false}
-              />
-            </div>
-          ) : (
-             isClient && <div className="text-center text-muted-foreground">
-              <p>Loading tasks...</p>
-            </div>
-          )}
+                icon={<ListTodo className="h-6 w-6 text-primary" />}
+                emptyMessage="No upcoming tasks. Plan ahead!"
+            />
+          </div>
+
+          <div className="lg:col-span-1">
+             <TaskSection 
+                title="Past Tasks"
+                tasks={pastTasks}
+                onToggleTask={handleToggleTask}
+                onDeleteTask={handleDeleteTask}
+                icon={<ListTodo className="h-6 w-6 text-muted-foreground" />}
+                emptyMessage="No overdue tasks. Great job!"
+            />
+          </div>
+
         </div>
       </main>
-    </>
+    </div>
   );
 }
 
@@ -212,6 +236,7 @@ function AddTaskDialog({ onAddTask }: { onAddTask: (details: { title: string, de
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="Task title"
+              className="text-base"
             />
             <Textarea
                 id="description"
@@ -259,4 +284,50 @@ function AddTaskDialog({ onAddTask }: { onAddTask: (details: { title: string, de
   )
 }
 
+function TaskSection({ title, tasks, onToggleTask, onDeleteTask, icon, emptyMessage }: { 
+    title: string;
+    tasks: Task[];
+    onToggleTask: (id: string) => void;
+    onDeleteTask: (id: string) => void;
+    icon: React.ReactNode;
+    emptyMessage: string;
+}) {
+    const uncompletedTasks = tasks.filter(t => !t.completed);
+    const completedTasks = tasks.filter(t => t.completed);
+
+    return (
+        <div>
+            <div className="flex items-center gap-3 mb-4">
+                {icon}
+                <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+            </div>
+            {tasks.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/20 bg-card/50 py-12 px-4 text-center">
+                    <h3 className="text-lg font-semibold tracking-tight">All Clear!</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                       {emptyMessage}
+                    </p>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {uncompletedTasks.map(task => (
+                        <TaskCard key={task.id} task={task} onToggle={onToggleTask} onDelete={onDeleteTask} />
+                    ))}
+                    {completedTasks.length > 0 && (
+                        <div className="pt-4">
+                            <h3 className="mb-3 text-sm font-medium text-muted-foreground">
+                                Completed ({completedTasks.length})
+                            </h3>
+                            <div className="space-y-3">
+                                {completedTasks.map(task => (
+                                    <TaskCard key={task.id} task={task} onToggle={onToggleTask} onDelete={onDeleteTask} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    )
+}
     

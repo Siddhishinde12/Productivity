@@ -18,17 +18,17 @@ export default function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
   return (
     <Card
       className={cn(
-        'group transition-all',
-        task.completed && 'bg-muted/50'
+        'group transition-all hover:shadow-md',
+        task.completed && 'bg-card/50 opacity-70'
       )}
     >
-        <CardContent className="p-4 flex items-start gap-4">
+        <CardContent className="p-3 flex items-start gap-4">
             <Checkbox
                 id={`task-${task.id}`}
                 checked={task.completed}
                 onCheckedChange={() => onToggle(task.id)}
                 aria-label="Toggle task completion"
-                className="mt-1"
+                className="mt-1 h-5 w-5"
             />
             <div className="flex-1">
                 <label
