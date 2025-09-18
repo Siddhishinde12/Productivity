@@ -18,10 +18,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Calendar as CalendarIcon, CheckCircle2, ListTodo } from 'lucide-react';
-import { isToday, isFuture, format, isPast } from 'date-fns';
+import { Plus, Calendar as CalendarIcon, ListTodo } from 'lucide-react';
+import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import TaskCard from '@/components/task-card';
+import TaskRow from '@/components/task-row';
 
 
 export default function TasksPage() {
@@ -62,25 +62,9 @@ export default function TasksPage() {
     [lists, activeListId]
   );
   
-  const todayTasks = useMemo(() => {
+  const allTasks = useMemo(() => {
     if (!activeList) return [];
-    return activeList.tasks
-      .filter(task => task.date && isToday(new Date(task.date)) && !isPast(new Date(task.date)))
-      .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date!).getTime() - new Date(b.date!).getTime());
-  }, [activeList]);
-
-  const upcomingTasks = useMemo(() => {
-    if (!activeList) return [];
-    return activeList.tasks
-      .filter(task => task.date && isFuture(new Date(task.date)) && !isToday(new Date(task.date)))
-       .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date!).getTime() - new Date(b.date!).getTime());
-  }, [activeList]);
-
-  const pastTasks = useMemo(() => {
-    if (!activeList) return [];
-    return activeList.tasks
-      .filter(task => task.date && isPast(new Date(task.date)) && !isToday(new Date(task.date)))
-       .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(b.date!).getTime() - new Date(a.date!).getTime());
+    return [...activeList.tasks].sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date!).getTime() - new Date(b.date!).getTime());
   }, [activeList]);
 
 
@@ -153,38 +137,15 @@ export default function TasksPage() {
         <AddTaskDialog onAddTask={handleAddTask} />
       </header>
       <main className="flex-1 overflow-auto p-4 md:p-8 bg-muted/20">
-        <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-3">
-          
-          <div className="lg:col-span-2 space-y-8">
-            <TaskSection 
-                title="Today"
-                tasks={todayTasks}
-                onToggleTask={handleToggleTask}
-                onDeleteTask={handleDeleteTask}
-                icon={<CheckCircle2 className="h-6 w-6 text-primary" />}
-                emptyMessage="No tasks for today. Enjoy your day!"
-            />
-             <TaskSection 
-                title="Upcoming"
-                tasks={upcomingTasks}
+        <div className="mx-auto max-w-4xl">
+           <TaskSection 
+                title="All Tasks"
+                tasks={allTasks}
                 onToggleTask={handleToggleTask}
                 onDeleteTask={handleDeleteTask}
                 icon={<ListTodo className="h-6 w-6 text-primary" />}
-                emptyMessage="No upcoming tasks. Plan ahead!"
+                emptyMessage="Your task list is empty. Add a new task to get started!"
             />
-          </div>
-
-          <div className="lg:col-span-1">
-             <TaskSection 
-                title="Past Tasks"
-                tasks={pastTasks}
-                onToggleTask={handleToggleTask}
-                onDeleteTask={handleDeleteTask}
-                icon={<ListTodo className="h-6 w-6 text-muted-foreground" />}
-                emptyMessage="No overdue tasks. Great job!"
-            />
-          </div>
-
         </div>
       </main>
     </div>
@@ -296,38 +257,33 @@ function TaskSection({ title, tasks, onToggleTask, onDeleteTask, icon, emptyMess
     const completedTasks = tasks.filter(t => t.completed);
 
     return (
-        <div>
-            <div className="flex items-center gap-3 mb-4">
+        <div className="rounded-lg bg-card border shadow-sm">
+            <div className="flex items-center gap-3 mb-0 p-4 border-b">
                 {icon}
-                <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+                <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
             </div>
             {tasks.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/20 bg-card/50 py-12 px-4 text-center">
+                <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
                     <h3 className="text-lg font-semibold tracking-tight">All Clear!</h3>
                     <p className="mt-2 text-sm text-muted-foreground">
                        {emptyMessage}
                     </p>
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div className="divide-y">
                     {uncompletedTasks.map(task => (
-                        <TaskCard key={task.id} task={task} onToggle={onToggleTask} onDelete={onDeleteTask} />
+                        <TaskRow key={task.id} task={task} onToggle={onToggleTask} onDelete={onDeleteTask} />
                     ))}
                     {completedTasks.length > 0 && (
-                        <div className="pt-4">
-                            <h3 className="mb-3 text-sm font-medium text-muted-foreground">
-                                Completed ({completedTasks.length})
-                            </h3>
-                            <div className="space-y-3">
-                                {completedTasks.map(task => (
-                                    <TaskCard key={task.id} task={task} onToggle={onToggleTask} onDelete={onDeleteTask} />
-                                ))}
-                            </div>
-                        </div>
+                       <>
+                         {uncompletedTasks.length > 0 && <div className="p-2 bg-muted/50"></div>}
+                         {completedTasks.map(task => (
+                            <TaskRow key={task.id} task={task} onToggle={onToggleTask} onDelete={onDeleteTask} />
+                         ))}
+                       </>
                     )}
                 </div>
             )}
         </div>
     )
 }
-    
