@@ -1,6 +1,7 @@
 export type Task = {
   id: string;
   text: string;
+  description?: string;
   completed: boolean;
   date?: string;
   duration?: number; // in minutes

@@ -56,12 +56,12 @@ export default function TaskList({
           </form>
         )}
       </CardHeader>
-      <CardContent className="flex-1 space-y-4 overflow-auto">
+      <CardContent className="flex-1 space-y-4 overflow-auto p-4">
         {tasks.length === 0 && (
-           <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 py-12 text-center">
+           <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 py-12 text-center h-full">
             <h3 className="text-lg font-semibold tracking-tight">All clear!</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Add a new task to get started.
+              No tasks for this section.
             </p>
           </div>
         )}

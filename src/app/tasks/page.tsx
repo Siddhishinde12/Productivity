@@ -11,12 +11,18 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import TaskList from '@/components/task-list';
-import { Plus } from 'lucide-react';
-import { isToday, isFuture } from 'date-fns';
+import { Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { isToday, isFuture, format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import TaskCard from '@/components/task-card';
 
 
 export default function TasksPage() {
@@ -25,8 +31,6 @@ export default function TasksPage() {
     'active-list-id',
     null
   );
-  const [isNewListDialogOpen, setIsNewListDialogOpen] = useState(false);
-  const [newListName, setNewListName] = useState('');
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
 
@@ -38,12 +42,12 @@ export default function TasksPage() {
     if (isClient) {
       if (lists.length === 0) {
         const defaultList: TodoListType = {
-          id: Date.now().toString(),
+          id: 'default-list',
           name: 'My Tasks',
           tasks: [
-            { id: '1', text: 'Finish report for Q2', completed: false, date: new Date().toISOString() },
-            { id: '2', text: 'Schedule a dentist appointment', completed: true, date: new Date().toISOString() },
-            { id: '3', text: 'Pick up groceries', completed: false, date: new Date().toISOString() },
+            { id: '1', text: 'Finish report for Q2', description: 'Complete the quarterly financial report.', completed: false, date: new Date().toISOString() },
+            { id: '2', text: 'Schedule dentist appointment', description: 'Call Dr. Smith\'s office.', completed: true, date: new Date().toISOString() },
+            { id: '3', text: 'Pick up groceries', description: 'Milk, bread, eggs.', completed: false, date: new Date().toISOString() },
           ],
         };
         setLists([defaultList]);
@@ -74,13 +78,22 @@ export default function TasksPage() {
   }, [activeList]);
 
 
-  const handleAddTask = (taskText: string) => {
+  const handleAddTask = (taskDetails: { title: string, description: string, date: Date | undefined }) => {
     if (!activeListId) return;
+     if (!taskDetails.title) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Task title cannot be empty.',
+        });
+        return;
+    }
     const newTask: Task = {
       id: Date.now().toString(),
-      text: taskText,
+      text: taskDetails.title,
+      description: taskDetails.description,
       completed: false,
-      date: new Date().toISOString(),
+      date: taskDetails.date ? taskDetails.date.toISOString() : new Date().toISOString(),
     };
     const updatedLists = lists.map(list =>
       list.id === activeListId
@@ -88,6 +101,7 @@ export default function TasksPage() {
         : list
     );
     setLists(updatedLists);
+    return true;
   };
 
   const handleToggleTask = (taskId: string) => {
@@ -115,66 +129,24 @@ export default function TasksPage() {
     setLists(updatedLists);
   };
 
-  const handleAddNewList = () => {
-    if (newListName.trim() === '') {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'List name cannot be empty.',
-      });
-      return;
-    }
-    const newList: TodoListType = {
-      id: Date.now().toString(),
-      name: newListName.trim(),
-      tasks: [],
-    };
-    setLists([...lists, newList]);
-    setActiveListId(newList.id);
-    setNewListName('');
-    setIsNewListDialogOpen(false);
-  };
-
   return (
     <>
       <header className="sticky top-0 z-10 flex h-[60px] items-center justify-between border-b bg-background px-4 md:px-6">
         <h1 className="text-2xl font-semibold text-foreground">
-          Task Lists
+          My Tasks
         </h1>
+        <AddTaskDialog onAddTask={handleAddTask} />
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10 overflow-auto">
         <div className="mx-auto w-full max-w-4xl">
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold tracking-tight">My Lists</h2>
-              <Button onClick={() => setIsNewListDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                New List
-              </Button>
-            </div>
-            {isClient && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {lists.map(list => (
-                  <Button
-                    key={list.id}
-                    variant={activeListId === list.id ? 'default' : 'outline'}
-                    onClick={() => setActiveListId(list.id)}
-                  >
-                    {list.name}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
-
           {isClient && activeList ? (
             <div className='space-y-8'>
               <TaskList
                 title="Today's Tasks"
                 tasks={todayTasks || []}
-                onAddTask={handleAddTask}
                 onToggleTask={handleToggleTask}
                 onDeleteTask={handleDeleteTask}
+                showInput={false}
               />
               <TaskList
                 title="Upcoming"
@@ -186,35 +158,87 @@ export default function TasksPage() {
             </div>
           ) : (
              isClient && <div className="text-center text-muted-foreground">
-              <p>Select a list or create a new one to get started.</p>
+              <p>Loading tasks...</p>
             </div>
           )}
         </div>
       </main>
+    </>
+  );
+}
 
-      <Dialog open={isNewListDialogOpen} onOpenChange={setIsNewListDialogOpen}>
+function AddTaskDialog({ onAddTask }: { onAddTask: (details: { title: string, description: string, date: Date | undefined }) => boolean | void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [date, setDate] = useState<Date | undefined>(new Date());
+
+  const handleSave = () => {
+    const success = onAddTask({ title, description, date });
+    if (success) {
+      setTitle('');
+      setDescription('');
+      setDate(new Date());
+      setIsOpen(false);
+    }
+  };
+
+  return (
+     <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              New Task
+            </Button>
+        </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create a new list</DialogTitle>
+            <DialogTitle>Add a new task</DialogTitle>
             <DialogDescription>
-              Give your new list a name.
+              What do you need to get done?
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Input
-              id="name"
-              value={newListName}
-              onChange={e => setNewListName(e.target.value)}
-              placeholder="e.g. Work, Personal"
-              onKeyDown={(e) => e.key === 'Enter' && handleAddNewList()}
+              id="title"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="Task title"
             />
+            <Textarea
+                id="description"
+                value={description}
+                onChange={e => setDescription(e.target.value)}
+                placeholder="Add a note or description..."
+            />
+             <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsNewListDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleAddNewList}>Create List</Button>
+            <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave}>Add Task</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
-  );
+  )
 }
