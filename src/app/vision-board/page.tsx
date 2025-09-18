@@ -45,6 +45,22 @@ const defaultVisions: Vision[] = [
     imageHint: 'japan travel',
     completed: true,
   },
+  {
+    id: '4',
+    title: 'Start a business',
+    description: 'Launch a small online store.',
+    imageUrl: 'https://picsum.photos/seed/business/600/400',
+    imageHint: 'small business',
+    completed: false,
+  },
+  {
+    id: '5',
+    title: 'Learn to play Guitar',
+    description: 'Master the basics of acoustic guitar.',
+    imageUrl: 'https://picsum.photos/seed/guitar/600/400',
+    imageHint: 'acoustic guitar',
+    completed: false,
+  },
 ];
 
 export default function VisionBoardPage() {
@@ -104,7 +120,7 @@ export default function VisionBoardPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background">
+    <div className="flex min-h-screen w-full flex-col bg-muted/20">
       <header className="sticky top-0 z-10 flex h-[60px] items-center justify-between border-b bg-background px-4 md:px-6">
         <Link href="/">
           <h1 className="text-2xl font-semibold text-foreground">Zenith</h1>
@@ -116,7 +132,7 @@ export default function VisionBoardPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add New Vision
+              Add to Board
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -157,20 +173,21 @@ export default function VisionBoardPage() {
         </Dialog>
       </header>
       <main className="flex-1 p-4 md:p-10">
-        <div className="mb-8 text-center">
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-primary">
+        <div className="mb-12 text-center">
+            <h1 
+              className="text-4xl md:text-5xl font-bold tracking-tight text-foreground inline-block px-8 py-2 bg-amber-100/80 "
+              style={{fontFamily: "'Courier New', Courier, monospace", transform: 'rotate(-2deg)'}}
+            >
                 My Vision Board
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-                "The only thing standing between you and your goal is the story you keep telling yourself as to why you can't achieve it."
-            </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {visions.map(vision => (
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+          {visions.map((vision, index) => (
             <VisionCard
               key={vision.id}
               vision={vision}
               onToggle={handleToggleVision}
+              rotation={(index % 5) - 2.5} // -2.5, -1.5, -0.5, 0.5, 1.5
             />
           ))}
         </div>

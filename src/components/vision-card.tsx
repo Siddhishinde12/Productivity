@@ -2,57 +2,59 @@
 
 import Image from 'next/image';
 import { type Vision } from '@/types';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter
-} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { Badge } from './ui/badge';
 
 interface VisionCardProps {
   vision: Vision;
   onToggle: (id: string) => void;
+  rotation?: number;
 }
 
-export default function VisionCard({ vision, onToggle }: VisionCardProps) {
+export default function VisionCard({ vision, onToggle, rotation = 0 }: VisionCardProps) {
   return (
-    <Card
+    <div
       className={cn(
-        'flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
-        vision.completed && 'bg-card/60'
+        'inline-block break-inside-avoid-column p-4 bg-white rounded-sm shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-105',
+        vision.completed && 'opacity-60'
       )}
+      style={{ transform: `rotate(${rotation}deg)`}}
     >
-      <div className="relative h-48 w-full">
+      <div className="relative w-full">
         <Image
           src={vision.imageUrl}
           alt={vision.title}
           data-ai-hint={vision.imageHint}
-          fill
-          className="object-cover"
+          width={400}
+          height={300}
+          className="object-cover w-full"
         />
         {vision.completed && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <p className="text-2xl font-bold text-white">ACHIEVED</p>
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <p 
+                  className="text-3xl font-bold text-white uppercase tracking-widest"
+                  style={{fontFamily: "'Courier New', Courier, monospace", transform: 'rotate(-5deg)'}}
+                >
+                  Achieved
+                </p>
             </div>
         )}
       </div>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>{vision.title}</span>
-          {vision.completed && <Badge variant="secondary">Completed</Badge>}
-        </CardTitle>
-        <CardDescription
-          className={cn(vision.completed && 'line-through')}
+      <div className="p-4">
+        <h3 
+            className={cn(
+                "font-bold text-xl mb-2 text-zinc-800",
+                 vision.completed && 'line-through'
+            )}
+             style={{fontFamily: "'Courier New', Courier, monospace"}}
         >
+            {vision.title}
+        </h3>
+        <p className={cn("text-zinc-600 text-sm", vision.completed && 'line-through')}>
           {vision.description}
-        </CardDescription>
-      </CardHeader>
-      <CardFooter className="mt-auto">
+        </p>
+      </div>
+      <div className="px-4 pb-2">
         <div className="flex items-center space-x-2">
           <Checkbox
             id={`vision-${vision.id}`}
@@ -61,12 +63,12 @@ export default function VisionCard({ vision, onToggle }: VisionCardProps) {
           />
           <label
             htmlFor={`vision-${vision.id}`}
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-700"
           >
             Mark as Completed
           </label>
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
