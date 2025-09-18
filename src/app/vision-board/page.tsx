@@ -19,6 +19,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
 import VisionCard from '@/components/vision-card';
 import Link from 'next/link';
+import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 const defaultVisions: Vision[] = [
   {
@@ -115,9 +118,40 @@ export default function VisionBoardPage() {
     })
   };
 
+  const currentYear = new Date().getFullYear();
+  const middleIndex = Math.floor(visions.length / 2);
+
   if (!isClient) {
     return null;
   }
+
+  const visionsWithCenterpiece = [...visions];
+  // A bit of a hack to insert a "centerpiece" in the middle of the visions
+  const centerpiece = (
+      <div
+        key="centerpiece"
+        className={cn(
+            'inline-block break-inside-avoid-column p-4 bg-amber-50 rounded-sm shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 border-2 border-dashed border-amber-200'
+        )}
+        style={{ transform: `rotate(1deg)`}}
+      >
+        <div className="flex flex-col items-center justify-center h-full p-4">
+            <Avatar className="h-24 w-24 mb-4 border-4 border-white shadow-md">
+                <AvatarImage src="/placeholder.svg" alt="User" />
+                <AvatarFallback>YOU</AvatarFallback>
+            </Avatar>
+             <h2 
+              className="text-5xl font-bold text-zinc-800"
+              style={{fontFamily: "'Courier New', Courier, monospace"}}
+            >
+                {currentYear}
+            </h2>
+            <p className="text-zinc-600 mt-2" style={{fontFamily: "'Courier New', Courier, monospace"}}>My Year of...</p>
+        </div>
+      </div>
+  );
+  visionsWithCenterpiece.splice(middleIndex, 0, centerpiece as any);
+
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/20">
@@ -181,15 +215,31 @@ export default function VisionBoardPage() {
                 My Vision Board
             </h1>
         </div>
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-          {visions.map((vision, index) => (
-            <VisionCard
-              key={vision.id}
-              vision={vision}
-              onToggle={handleToggleVision}
-              rotation={(index % 5) - 2.5} // -2.5, -1.5, -0.5, 0.5, 1.5
-            />
-          ))}
+        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+          {visionsWithCenterpiece.map((item: any, index) => {
+             if (item.props?.vision) {
+                return (
+                     <VisionCard
+                        key={item.props.vision.id}
+                        vision={item.props.vision}
+                        onToggle={handleToggleVision}
+                        rotation={(index % 5) - 2.5}
+                     />
+                )
+             }
+             if (item.key === 'centerpiece') {
+                 return item;
+             }
+             const vision = item as Vision;
+             return (
+                 <VisionCard
+                    key={vision.id}
+                    vision={vision}
+                    onToggle={handleToggleVision}
+                    rotation={(index % 5) - 2.5}
+                 />
+             )
+          })}
         </div>
       </main>
     </div>
