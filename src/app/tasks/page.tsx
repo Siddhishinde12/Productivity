@@ -14,10 +14,10 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { QUOTES } from '@/lib/quotes';
 import TaskList from '@/components/task-list';
-import { Calendar, Plus } from 'lucide-react';
-import Link from 'next/link';
+import { Plus } from 'lucide-react';
+import { isToday, isFuture } from 'date-fns';
+
 
 export default function TasksPage() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
@@ -27,15 +27,11 @@ export default function TasksPage() {
   );
   const [isNewListDialogOpen, setIsNewListDialogOpen] = useState(false);
   const [newListName, setNewListName] = useState('');
-  const [quote, setQuote] = useState<{ quote: string; author: string } | null>(
-    null
-  );
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    setQuote(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
   }, []);
 
   useEffect(() => {
@@ -64,33 +60,17 @@ export default function TasksPage() {
   );
   
   const todayTasks = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    return activeList?.tasks
-      .filter(task => {
-        if (!task.date) return false;
-        const taskDate = new Date(task.date);
-        return taskDate >= today && taskDate < tomorrow;
-      })
+    if (!activeList) return [];
+    return activeList.tasks
+      .filter(task => task.date && isToday(new Date(task.date)))
       .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date!).getTime() - new Date(b.date!).getTime());
   }, [activeList]);
 
   const upcomingTasks = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-  
-    return activeList?.tasks
-      .filter(task => {
-        if (!task.date) return false;
-        const taskDate = new Date(task.date);
-        return taskDate >= tomorrow;
-      })
-      .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date!).getTime() - new Date(b.date!).getTime());
+    if (!activeList) return [];
+    return activeList.tasks
+      .filter(task => task.date && isFuture(new Date(task.date)) && !isToday(new Date(task.date)))
+       .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date!).getTime() - new Date(b.date!).getTime());
   }, [activeList]);
 
 
@@ -164,17 +144,6 @@ export default function TasksPage() {
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10 overflow-auto">
         <div className="mx-auto w-full max-w-4xl">
-          {isClient && quote && (
-            <div className="mb-8 rounded-lg bg-card p-6 text-center">
-              <blockquote className="text-xl italic">
-                "{quote.quote}"
-              </blockquote>
-              <cite className="mt-4 block text-right font-semibold">
-                - {quote.author}
-              </cite>
-            </div>
-          )}
-
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold tracking-tight">My Lists</h2>

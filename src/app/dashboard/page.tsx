@@ -39,6 +39,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useEffect, useState } from 'react';
+import { QUOTES } from '@/lib/quotes';
 
 const monthlyData = [
   { month: 'Jan', saved: 186, spent: 80 },
@@ -89,8 +91,27 @@ const chartConfig = {
 };
 
 export default function DashboardPage() {
+  const [quote, setQuote] = useState<{ quote: string; author: string } | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    setQuote(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+  }, []);
+
+
   return (
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 overflow-auto">
+        {isClient && quote && (
+            <div className="mb-4 rounded-lg bg-card p-6 text-center shadow-sm">
+              <blockquote className="text-xl italic">
+                "{quote.quote}"
+              </blockquote>
+              <cite className="mt-4 block text-right font-semibold">
+                - {quote.author}
+              </cite>
+            </div>
+          )}
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
