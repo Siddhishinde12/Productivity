@@ -12,6 +12,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarInset,
 } from '@/components/ui/sidebar';
 import { Plus, Search, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -54,27 +55,29 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (lists.length === 0) {
-      const defaultList: TodoListType = {
-        id: Date.now().toString(),
-        name: 'Odama Team',
-        tasks: [
-          { id: '1', text: 'Moodboarding - Showtime Project', completed: false, date: '2025-04-01T07:30:00', duration: 210, color: 'pink' },
-          { id: '2', text: 'Wireframe - Altafluent Project', completed: false, date: '2025-04-02T08:00:00', duration: 120, color: 'blue' },
-          { id: '3', text: 'Exploration Design - Odama Shot', completed: false, date: '2025-04-04T07:30:00', duration: 150, color: 'blue' },
-          { id: '4', text: 'Feedback - BigLeads Projects', completed: false, date: '2025-04-06T08:00:00', duration: 120, color: 'green' },
-          { id: '5', text: 'Feedback - Altafluent Projects', completed: false, date: '2025-04-06T10:00:00', duration: 120, color: 'yellow' },
-          { id: '6', text: 'Wireframe - RTGO Projects', completed: false, date: '2025-04-07T11:00:00', duration: 120, color: 'cyan' },
-        ],
-      };
-      // Set a date that works with the default tasks
-      setCurrentDate(new Date('2025-04-01'));
-      setLists([defaultList]);
-      setActiveListId(defaultList.id);
-    } else if (!activeListId || !lists.some(l => l.id === activeListId)) {
-      setActiveListId(lists[0]?.id || null);
+    if (isClient) {
+        if (lists.length === 0) {
+        const defaultList: TodoListType = {
+            id: Date.now().toString(),
+            name: 'Odama Team',
+            tasks: [
+            { id: '1', text: 'Moodboarding - Showtime Project', completed: false, date: '2025-04-01T07:30:00', duration: 210, color: 'pink' },
+            { id: '2', text: 'Wireframe - Altafluent Project', completed: false, date: '2025-04-02T08:00:00', duration: 120, color: 'blue' },
+            { id: '3', text: 'Exploration Design - Odama Shot', completed: false, date: '2025-04-04T07:30:00', duration: 150, color: 'blue' },
+            { id: '4', text: 'Feedback - BigLeads Projects', completed: false, date: '2025-04-06T08:00:00', duration: 120, color: 'green' },
+            { id: '5', text: 'Feedback - Altafluent Projects', completed: false, date: '2025-04-06T10:00:00', duration: 120, color: 'yellow' },
+            { id: '6', text: 'Wireframe - RTGO Projects', completed: false, date: '2025-04-07T11:00:00', duration: 120, color: 'cyan' },
+            ],
+        };
+        // Set a date that works with the default tasks
+        setCurrentDate(new Date('2025-04-01'));
+        setLists([defaultList]);
+        setActiveListId(defaultList.id);
+        } else if (!activeListId || !lists.some(l => l.id === activeListId)) {
+        setActiveListId(lists[0]?.id || null);
+        }
     }
-  }, [lists, setLists, activeListId, setActiveListId]);
+  }, [isClient, lists, setLists, activeListId, setActiveListId]);
 
   const activeList = useMemo(
     () => lists.find(list => list.id === activeListId),
@@ -190,7 +193,7 @@ export default function Home() {
           </SidebarContent>
         </Sidebar>
 
-        <main className="flex flex-1 flex-col">
+        <SidebarInset>
           <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
             <SidebarTrigger className="md:hidden" />
             <div className="flex-1">
@@ -207,7 +210,7 @@ export default function Home() {
             </div>
           </header>
 
-          <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
+          <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="icon" onClick={() => setCurrentDate(d => { const newDate = new Date(d); newDate.setDate(d.getDate() - 7); return newDate; })}><ChevronLeft className="h-4 w-4" /></Button>
@@ -254,9 +257,8 @@ export default function Home() {
                     ))}
                 </div>
             </div>
-
-          </div>
-        </main>
+          </main>
+        </SidebarInset>
       </div>
 
       <Dialog open={isNewListDialogOpen} onOpenChange={setIsNewListDialogOpen}>
