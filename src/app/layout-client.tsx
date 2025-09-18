@@ -22,10 +22,13 @@ import {
   Plane,
   Plus,
   Rocket,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { type TodoList } from '@/types';
 import { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 
 export default function AppLayoutClient({
   children,
@@ -38,6 +41,7 @@ export default function AppLayoutClient({
     null
   );
   const [isClient, setIsClient] = useState(false);
+  const { setTheme, theme } = useTheme();
 
   useEffect(() => {
     setIsClient(true);
@@ -49,9 +53,18 @@ export default function AppLayoutClient({
   return (
     <div className="flex h-screen bg-background text-foreground">
       <aside className="w-64 flex-shrink-0 border-r bg-card p-4 flex flex-col">
-        <Link href="/">
-          <h1 className="text-2xl font-bold text-foreground mb-8">Zenith</h1>
-        </Link>
+        <div className="flex items-center justify-between mb-8">
+            <Link href="/">
+              <h1 className="text-2xl font-bold text-foreground">Zenith</h1>
+            </Link>
+             {isClient && (
+                <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                    <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    <span className="sr-only">Toggle theme</span>
+                </Button>
+            )}
+        </div>
         {isClient && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
