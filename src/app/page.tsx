@@ -11,6 +11,7 @@ import {
   Plus,
   ListTodo,
   Rocket,
+  Dumbbell,
 } from 'lucide-react';
 import {
   format,
@@ -161,6 +162,12 @@ export default function Home() {
             <Button variant="outline" className="w-full justify-start">
               <Rocket className="mr-2" />
               Vision Board
+            </Button>
+          </Link>
+          <Link href="/gym">
+            <Button variant="outline" className="w-full justify-start">
+              <Dumbbell className="mr-2" />
+              Gym & Health
             </Button>
           </Link>
         </nav>

@@ -26,4 +26,11 @@ export type Vision = {
   imageHint: string;
   completed: boolean;
 };
+
+export type Workout = {
+  id: string;
+  date: string;
+  type: string;
+  duration: number; // in minutes
+};
     
