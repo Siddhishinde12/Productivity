@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import {
   ChevronLeft,
   ChevronRight,
+  LayoutDashboard,
   Plus,
+  ListTodo,
 } from 'lucide-react';
 import {
   format,
@@ -141,12 +143,20 @@ export default function Home() {
               </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        <Link href="/tasks">
-          <Button variant="outline" className="w-full mb-4">
-            Task List
-          </Button>
-        </Link>
+        <nav className="flex flex-col gap-2">
+          <Link href="/tasks">
+            <Button variant="outline" className="w-full justify-start">
+              <ListTodo className="mr-2" />
+              Task List
+            </Button>
+          </Link>
+          <Link href="/dashboard">
+            <Button variant="outline" className="w-full justify-start">
+              <LayoutDashboard className="mr-2" />
+              Dashboard
+            </Button>
+          </Link>
+        </nav>
       </aside>
       <div className="flex flex-1 flex-col">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4 sm:px-6">
