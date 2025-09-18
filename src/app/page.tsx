@@ -38,22 +38,24 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (lists.length === 0) {
-      const defaultList: TodoListType = {
-        id: Date.now().toString(),
-        name: 'My Tasks',
-        tasks: [
-          { id: '1', text: 'Finish report for Q2', completed: false, date: new Date().toISOString() },
-          { id: '2', text: 'Schedule a dentist appointment', completed: true, date: new Date().toISOString() },
-          { id: '3', text: 'Pick up groceries', completed: false, date: new Date().toISOString() },
-        ],
-      };
-      setLists([defaultList]);
-      setActiveListId(defaultList.id);
-    } else if (!activeListId || !lists.some(l => l.id === activeListId)) {
-      setActiveListId(lists[0]?.id || null);
+    if (isClient) {
+      if (lists.length === 0) {
+        const defaultList: TodoListType = {
+          id: Date.now().toString(),
+          name: 'My Tasks',
+          tasks: [
+            { id: '1', text: 'Finish report for Q2', completed: false, date: new Date().toISOString() },
+            { id: '2', text: 'Schedule a dentist appointment', completed: true, date: new Date().toISOString() },
+            { id: '3', text: 'Pick up groceries', completed: false, date: new Date().toISOString() },
+          ],
+        };
+        setLists([defaultList]);
+        setActiveListId(defaultList.id);
+      } else if (!activeListId || !lists.some(l => l.id === activeListId)) {
+        setActiveListId(lists[0]?.id || null);
+      }
     }
-  }, [lists, setLists, activeListId, setActiveListId]);
+  }, [isClient, lists, setLists, activeListId, setActiveListId]);
 
   const activeList = useMemo(
     () => lists.find(list => list.id === activeListId),
@@ -161,7 +163,7 @@ export default function Home() {
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10">
         <div className="mx-auto w-full max-w-4xl">
-          {quote && (
+          {isClient && quote && (
             <div className="mb-8 rounded-lg bg-card p-6 text-center">
               <blockquote className="text-xl italic">
                 "{quote.quote}"
@@ -213,7 +215,7 @@ export default function Home() {
               />
             </div>
           ) : (
-             <div className="text-center text-muted-foreground">
+             isClient && <div className="text-center text-muted-foreground">
               <p>Select a list or create a new one to get started.</p>
             </div>
           )}
