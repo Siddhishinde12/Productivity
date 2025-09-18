@@ -30,8 +30,10 @@ export default function Home() {
     null
   );
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     setQuote(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
   }, []);
 
@@ -41,9 +43,9 @@ export default function Home() {
         id: Date.now().toString(),
         name: 'My Tasks',
         tasks: [
-          { id: '1', text: 'Finish report for Q2', completed: false },
-          { id: '2', text: 'Schedule a dentist appointment', completed: true },
-          { id: '3', text: 'Pick up groceries', completed: false },
+          { id: '1', text: 'Finish report for Q2', completed: false, date: new Date().toISOString() },
+          { id: '2', text: 'Schedule a dentist appointment', completed: true, date: new Date().toISOString() },
+          { id: '3', text: 'Pick up groceries', completed: false, date: new Date().toISOString() },
         ],
       };
       setLists([defaultList]);
@@ -57,6 +59,37 @@ export default function Home() {
     () => lists.find(list => list.id === activeListId),
     [lists, activeListId]
   );
+  
+  const todayTasks = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    return activeList?.tasks
+      .filter(task => {
+        if (!task.date) return false;
+        const taskDate = new Date(task.date);
+        return taskDate >= today && taskDate < tomorrow;
+      })
+      .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date!).getTime() - new Date(b.date!).getTime());
+  }, [activeList]);
+
+  const upcomingTasks = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+  
+    return activeList?.tasks
+      .filter(task => {
+        if (!task.date) return false;
+        const taskDate = new Date(task.date);
+        return taskDate >= tomorrow;
+      })
+      .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date!).getTime() - new Date(b.date!).getTime());
+  }, [activeList]);
+
 
   const handleAddTask = (taskText: string) => {
     if (!activeListId) return;
@@ -64,6 +97,7 @@ export default function Home() {
       id: Date.now().toString(),
       text: taskText,
       completed: false,
+      date: new Date().toISOString(),
     };
     const updatedLists = lists.map(list =>
       list.id === activeListId
@@ -146,29 +180,40 @@ export default function Home() {
                 New List
               </Button>
             </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {lists.map(list => (
-                <Button
-                  key={list.id}
-                  variant={activeListId === list.id ? 'default' : 'outline'}
-                  onClick={() => setActiveListId(list.id)}
-                >
-                  {list.name}
-                </Button>
-              ))}
-            </div>
+            {isClient && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {lists.map(list => (
+                  <Button
+                    key={list.id}
+                    variant={activeListId === list.id ? 'default' : 'outline'}
+                    onClick={() => setActiveListId(list.id)}
+                  >
+                    {list.name}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {activeList ? (
-            <TaskList
-              key={activeList.id}
-              list={activeList}
-              onAddTask={handleAddTask}
-              onToggleTask={handleToggleTask}
-              onDeleteTask={handleDeleteTask}
-            />
+          {isClient && activeList ? (
+            <div className='space-y-8'>
+              <TaskList
+                title="Today's Tasks"
+                tasks={todayTasks || []}
+                onAddTask={handleAddTask}
+                onToggleTask={handleToggleTask}
+                onDeleteTask={handleDeleteTask}
+              />
+              <TaskList
+                title="Upcoming"
+                tasks={upcomingTasks || []}
+                onToggleTask={handleToggleTask}
+                onDeleteTask={handleDeleteTask}
+                showInput={false}
+              />
+            </div>
           ) : (
-            <div className="text-center text-muted-foreground">
+             <div className="text-center text-muted-foreground">
               <p>Select a list or create a new one to get started.</p>
             </div>
           )}
