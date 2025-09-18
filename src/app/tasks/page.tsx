@@ -172,13 +172,21 @@ function AddTaskDialog({ onAddTask }: { onAddTask: (details: { title: string, de
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [time, setTime] = useState(format(new Date(), 'HH:mm'));
 
   const handleSave = () => {
-    const success = onAddTask({ title, description, date });
+    let finalDate = date ? new Date(date) : new Date();
+    if (time) {
+        const [hours, minutes] = time.split(':');
+        finalDate.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+    }
+
+    const success = onAddTask({ title, description, date: finalDate });
     if (success) {
       setTitle('');
       setDescription('');
       setDate(new Date());
+      setTime(format(new Date(), 'HH:mm'));
       setIsOpen(false);
     }
   };
@@ -211,28 +219,36 @@ function AddTaskDialog({ onAddTask }: { onAddTask: (details: { title: string, de
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Add a note or description..."
             />
-             <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+             <div className="grid grid-cols-2 gap-4">
+                <Popover>
+                    <PopoverTrigger asChild>
+                    <Button
+                        variant={"outline"}
+                        className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                    <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        initialFocus
+                    />
+                    </PopoverContent>
+                </Popover>
+                <Input
+                    id="time"
+                    type="time"
+                    value={time}
+                    onChange={e => setTime(e.target.value)}
+                />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
