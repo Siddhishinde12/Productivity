@@ -16,7 +16,8 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { QUOTES } from '@/lib/quotes';
 import TaskList from '@/components/task-list';
-import { Plus } from 'lucide-react';
+import { Calendar, Plus } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
@@ -156,10 +157,16 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
-      <header className="sticky top-0 z-10 flex h-[60px] items-center gap-4 border-b bg-background px-4 md:px-6">
+      <header className="sticky top-0 z-10 flex h-[60px] items-center justify-between border-b bg-background px-4 md:px-6">
         <h1 className="text-2xl font-semibold text-foreground">
           Zenith
         </h1>
+        <Link href="/calendar">
+          <Button variant="outline">
+            <Calendar className="mr-2 h-4 w-4" />
+            Calendar
+          </Button>
+        </Link>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10">
         <div className="mx-auto w-full max-w-4xl">
