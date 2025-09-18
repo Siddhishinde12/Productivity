@@ -64,7 +64,7 @@ export default function TasksPage() {
   
   const allTasks = useMemo(() => {
     if (!activeList) return [];
-    return [...activeList.tasks].sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date!).getTime() - new Date(b.date!).getTime());
+    return [...activeList.tasks].sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || (a.date && b.date ? new Date(a.date).getTime() - new Date(b.date).getTime() : 0));
   }, [activeList]);
 
 
@@ -138,14 +138,16 @@ export default function TasksPage() {
       </header>
       <main className="flex-1 overflow-auto p-4 md:p-8 bg-muted/20">
         <div className="mx-auto max-w-4xl">
-           <TaskSection 
-                title="All Tasks"
-                tasks={allTasks}
-                onToggleTask={handleToggleTask}
-                onDeleteTask={handleDeleteTask}
-                icon={<ListTodo className="h-6 w-6 text-primary" />}
-                emptyMessage="Your task list is empty. Add a new task to get started!"
-            />
+          {isClient && (
+            <TaskSection 
+                  title="All Tasks"
+                  tasks={allTasks}
+                  onToggleTask={handleToggleTask}
+                  onDeleteTask={handleDeleteTask}
+                  icon={<ListTodo className="h-6 w-6 text-primary" />}
+                  emptyMessage="Your task list is empty. Add a new task to get started!"
+              />
+          )}
         </div>
       </main>
     </div>
