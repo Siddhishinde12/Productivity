@@ -13,18 +13,17 @@ import {
   startOfWeek,
   addDays,
   isSameDay,
-  isToday
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import TodayTodoList from '@/components/today-todo-list';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 24 }, (_, i) => i);
 
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
-  const [activeListId] = useLocalStorage<string | null>('active-list-id', null);
+  const [activeListId, setActiveListId] = useLocalStorage<string | null>('active-list-id', null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isClient, setIsClient] = useState(false);
 
@@ -46,9 +45,14 @@ export default function Home() {
           ],
         };
          setLists([defaultList]);
+         if (!activeListId) {
+            setActiveListId(defaultList.id);
+         }
+      } else if (!activeListId) {
+        setActiveListId(lists[0].id);
       }
     }
-  }, [isClient, lists.length, setLists]);
+  }, [isClient, lists, setLists, activeListId, setActiveListId]);
 
   const activeList = useMemo(
     () => lists.find(list => list.id === activeListId) ?? lists[0],
@@ -68,11 +72,6 @@ export default function Home() {
         listName: activeList.name,
       }));
   }, [activeList, isClient]);
-  
-  const todayTasks = useMemo(() => {
-     if (!isClient || !activeList) return [];
-     return activeList.tasks.filter(task => task.date && isToday(new Date(task.date)));
-  }, [activeList, isClient]);
 
   const getTasksForDay = useCallback(
     (day: Date) => {
@@ -82,6 +81,21 @@ export default function Home() {
     },
     [allTasks]
   );
+  
+  const handleToggleTask = (taskId: string) => {
+    if (!activeListId) return;
+    const updatedLists = lists.map(list =>
+      list.id === activeListId
+        ? {
+            ...list,
+            tasks: list.tasks.map(task =>
+              task.id === taskId ? { ...task, completed: !task.completed } : task
+            ),
+          }
+        : list
+    );
+    setLists(updatedLists);
+  };
   
   const handlePrevWeek = () => {
     setCurrentDate(addDays(currentDate, -7));
@@ -115,6 +129,31 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 h-full">
+        <aside className="w-80 flex-shrink-0 border-r bg-card p-4">
+            <h2 className="text-lg font-semibold tracking-tight mb-4">Tasks</h2>
+             <ScrollArea className="h-[calc(100vh-100px)]">
+                 <div className="space-y-2">
+                     {allTasks.sort((a,b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1)).map(task => (
+                        <div key={task.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted">
+                            <Checkbox 
+                                id={`task-${task.id}`}
+                                checked={task.completed} 
+                                onCheckedChange={() => handleToggleTask(task.id)}
+                            />
+                            <label
+                                htmlFor={`task-${task.id}`}
+                                className={cn(
+                                    "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+                                    task.completed && "line-through text-muted-foreground"
+                                )}
+                            >
+                            {task.text}
+                            </label>
+                      </div>
+                     ))}
+                 </div>
+            </ScrollArea>
+      </aside>
       <div className="flex flex-1 flex-col">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4 sm:px-6">
           <div className="flex items-center gap-4">
@@ -190,9 +229,6 @@ export default function Home() {
           </div>
         </main>
       </div>
-      <aside className="w-80 flex-shrink-0 border-l bg-card p-4">
-          <TodayTodoList tasks={todayTasks} />
-      </aside>
     </div>
   );
 }
