@@ -18,8 +18,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
 import VisionCard from '@/components/vision-card';
-import Link from 'next/link';
-import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
@@ -125,8 +123,7 @@ export default function VisionBoardPage() {
     return null;
   }
 
-  const visionsWithCenterpiece = [...visions];
-  // A bit of a hack to insert a "centerpiece" in the middle of the visions
+  const visionsWithCenterpiece: (Vision | React.ReactElement)[] = [...visions];
   const centerpiece = (
       <div
         key="centerpiece"
@@ -154,11 +151,9 @@ export default function VisionBoardPage() {
 
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/20">
+    <>
       <header className="sticky top-0 z-10 flex h-[60px] items-center justify-between border-b bg-background px-4 md:px-6">
-        <Link href="/">
-          <h1 className="text-2xl font-semibold text-foreground">Zenith</h1>
-        </Link>
+        <h1 className="text-2xl font-semibold text-foreground">My Vision Board</h1>
         <Dialog
           open={isNewVisionDialogOpen}
           onOpenChange={setIsNewVisionDialogOpen}
@@ -206,7 +201,7 @@ export default function VisionBoardPage() {
           </DialogContent>
         </Dialog>
       </header>
-      <main className="flex-1 p-4 md:p-10">
+      <main className="flex-1 p-4 md:p-10 overflow-auto bg-muted/20">
         <div className="mb-12 text-center">
             <h1 
               className="text-4xl md:text-5xl font-bold tracking-tight text-foreground inline-block px-8 py-2 bg-amber-100/80 "
@@ -217,17 +212,7 @@ export default function VisionBoardPage() {
         </div>
         <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
           {visionsWithCenterpiece.map((item: any, index) => {
-             if (item.props?.vision) {
-                return (
-                     <VisionCard
-                        key={item.props.vision.id}
-                        vision={item.props.vision}
-                        onToggle={handleToggleVision}
-                        rotation={(index % 5) - 2.5}
-                     />
-                )
-             }
-             if (item.key === 'centerpiece') {
+             if (item.type === 'div') {
                  return item;
              }
              const vision = item as Vision;
@@ -242,6 +227,6 @@ export default function VisionBoardPage() {
           })}
         </div>
       </main>
-    </div>
+    </>
   );
 }

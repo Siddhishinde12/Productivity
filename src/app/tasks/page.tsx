@@ -156,19 +156,13 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background">
+    <>
       <header className="sticky top-0 z-10 flex h-[60px] items-center justify-between border-b bg-background px-4 md:px-6">
         <h1 className="text-2xl font-semibold text-foreground">
-          Zenith
+          Task Lists
         </h1>
-        <Link href="/">
-          <Button variant="outline">
-            <Calendar className="mr-2 h-4 w-4" />
-            Calendar
-          </Button>
-        </Link>
       </header>
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10">
+      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10 overflow-auto">
         <div className="mx-auto w-full max-w-4xl">
           {isClient && quote && (
             <div className="mb-8 rounded-lg bg-card p-6 text-center">
@@ -183,7 +177,7 @@ export default function TasksPage() {
 
           <div className="mb-8">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold tracking-tight">Todo Lists</h2>
+              <h2 className="text-2xl font-bold tracking-tight">My Lists</h2>
               <Button onClick={() => setIsNewListDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 New List
@@ -252,6 +246,6 @@ export default function TasksPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

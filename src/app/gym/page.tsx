@@ -20,7 +20,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Dumbbell, Target, Flame, HeartPulse, Plus } from 'lucide-react';
-import Link from 'next/link';
 import {
   LineChart,
   Line,
@@ -76,19 +75,17 @@ export default function GymPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background">
+    <>
       <header className="sticky top-0 z-10 flex h-[60px] items-center justify-between border-b bg-background px-4 md:px-6">
-        <Link href="/">
-          <h1 className="text-2xl font-semibold text-foreground">Zenith</h1>
-        </Link>
+        <h1 className="text-2xl font-semibold text-foreground">Gym & Health</h1>
         <Button>
           <Plus className="mr-2" /> Log Workout
         </Button>
       </header>
-      <main className="flex-1 p-4 md:p-10">
+      <main className="flex-1 p-4 md:p-10 overflow-auto">
         <div className="mb-8 text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-primary">
-                Gym & Health
+                Your Fitness Journey
             </h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
                 Track your fitness journey, crush your goals, and build a stronger you.
@@ -185,6 +182,6 @@ export default function GymPage() {
             </Card>
         </div>
       </main>
-    </div>
+    </>
   );
 }

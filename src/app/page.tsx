@@ -7,38 +7,24 @@ import { Button } from '@/components/ui/button';
 import {
   ChevronLeft,
   ChevronRight,
-  LayoutDashboard,
-  Plus,
-  ListTodo,
-  Rocket,
-  Dumbbell,
-  Plane,
 } from 'lucide-react';
 import {
   format,
   startOfWeek,
   addDays,
   isSameDay,
+  isToday
 } from 'date-fns';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import TodayTodoList from '@/components/today-todo-list';
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 24 }, (_, i) => i);
 
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
-  const [activeListId, setActiveListId] = useLocalStorage<string | null>('active-list-id', null);
+  const [activeListId] = useLocalStorage<string | null>('active-list-id', null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isClient, setIsClient] = useState(false);
 
@@ -48,14 +34,24 @@ export default function Home() {
 
   useEffect(() => {
     if (isClient) {
-      if (lists.length > 0 && !activeListId) {
-        setActiveListId(lists[0].id);
+      if (lists.length === 0) {
+        // Set default lists if none exist
+        const defaultList: TodoListType = {
+          id: Date.now().toString(),
+          name: 'My Tasks',
+          tasks: [
+            { id: '1', text: 'Finish report for Q2', completed: false, date: new Date().toISOString(), duration: 120 },
+            { id: '2', text: 'Schedule a dentist appointment', completed: true, date: new Date(new Date().setHours(14,0,0,0)).toISOString(), duration: 45 },
+            { id: '3', text: 'Pick up groceries', completed: false, date: new Date(new Date().setHours(17,30,0,0)).toISOString(), duration: 60 },
+          ],
+        };
+         setLists([defaultList]);
       }
     }
-  }, [isClient, lists, activeListId, setActiveListId]);
+  }, [isClient, lists.length, setLists]);
 
   const activeList = useMemo(
-    () => lists.find(list => list.id === activeListId),
+    () => lists.find(list => list.id === activeListId) ?? lists[0],
     [lists, activeListId]
   );
   
@@ -71,6 +67,11 @@ export default function Home() {
         ...task,
         listName: activeList.name,
       }));
+  }, [activeList, isClient]);
+  
+  const todayTasks = useMemo(() => {
+     if (!isClient || !activeList) return [];
+     return activeList.tasks.filter(task => task.date && isToday(new Date(task.date)));
   }, [activeList, isClient]);
 
   const getTasksForDay = useCallback(
@@ -113,72 +114,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-background text-foreground">
-       <aside className="w-64 flex-shrink-0 border-r bg-card p-4">
-        <Link href="/">
-          <h1 className="text-2xl font-bold text-foreground mb-8">Zenith</h1>
-        </Link>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start items-center gap-2 mb-8">
-               <Avatar className="h-8 w-8">
-                 <AvatarImage src="/placeholder.svg" alt="User" />
-                 <AvatarFallback>OT</AvatarFallback>
-               </Avatar>
-               <span className="font-semibold text-lg">{activeList?.name || 'My List'}</span>
-             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            <DropdownMenuLabel>My Lists</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {lists.map(list => (
-              <DropdownMenuItem key={list.id} onSelect={() => setActiveListId(list.id)}>
-                {list.name}
-              </DropdownMenuItem>
-            ))}
-             <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => {
-                // This would ideally open a dialog
-                console.log("Create new list");
-              }}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create New
-              </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <nav className="flex flex-col gap-2">
-          <Link href="/tasks">
-            <Button variant="outline" className="w-full justify-start">
-              <ListTodo className="mr-2" />
-              Task List
-            </Button>
-          </Link>
-          <Link href="/dashboard">
-            <Button variant="outline" className="w-full justify-start">
-              <LayoutDashboard className="mr-2" />
-              Dashboard
-            </Button>
-          </Link>
-          <Link href="/vision-board">
-            <Button variant="outline" className="w-full justify-start">
-              <Rocket className="mr-2" />
-              Vision Board
-            </Button>
-          </Link>
-          <Link href="/gym">
-            <Button variant="outline" className="w-full justify-start">
-              <Dumbbell className="mr-2" />
-              Gym & Health
-            </Button>
-          </Link>
-           <Link href="/travel">
-            <Button variant="outline" className="w-full justify-start">
-              <Plane className="mr-2" />
-              Travel Plans
-            </Button>
-          </Link>
-        </nav>
-      </aside>
+    <div className="flex flex-1 h-full">
       <div className="flex flex-1 flex-col">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4 sm:px-6">
           <div className="flex items-center gap-4">
@@ -201,27 +137,29 @@ export default function Home() {
             <div className="w-16 flex-shrink-0 text-xs text-center text-muted-foreground">
                <ScrollArea className="h-full">
                 <div className="relative">
+                  {/* Empty space for day headers */}
+                  <div className="h-[73px] border-b"></div>
                   {hours.map(hour => (
                     <div key={hour} className="h-16 border-b flex items-center justify-center">
-                     {hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}
+                     <span className="relative -top-3">{hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`}</span>
                     </div>
                   ))}
                 </div>
                </ScrollArea>
             </div>
             <div className="grid flex-1 grid-cols-7">
-              {week.map((day, dayIndex) => (
+              {week.map((day) => (
                 <div
                   key={day.toISOString()}
                   className={cn('border-r relative')}
                 >
-                  <div className="sticky top-0 z-10 bg-background border-b p-2 text-center">
+                  <div className="sticky top-0 z-10 bg-background border-b p-2 text-center h-[73px]">
                     <p className="text-sm text-muted-foreground">
                       {dayNames[day.getDay()]}
                     </p>
                     <p
                       className={cn('text-2xl font-bold', {
-                        'text-primary': isSameDay(day, new Date()),
+                        'text-primary bg-primary/20 rounded-full w-10 h-10 flex items-center justify-center mx-auto': isSameDay(day, new Date()),
                       })}
                     >
                       {format(day, 'd')}
@@ -252,6 +190,9 @@ export default function Home() {
           </div>
         </main>
       </div>
+      <aside className="w-80 flex-shrink-0 border-l bg-card p-4">
+          <TodayTodoList tasks={todayTasks} />
+      </aside>
     </div>
   );
 }

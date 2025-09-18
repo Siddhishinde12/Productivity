@@ -17,10 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
-import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
   Select,
@@ -29,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 
 const defaultTravelPlans: TravelPlan[] = [
   {
@@ -110,23 +106,10 @@ export default function TravelPage() {
     return null;
   }
 
-  const getStatusBadgeVariant = (status: TravelPlan['status']) => {
-    switch (status) {
-      case 'completed':
-        return 'default';
-      case 'planned':
-        return 'secondary';
-      case 'bucket-list':
-        return 'outline';
-    }
-  };
-
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/20">
+    <>
       <header className="sticky top-0 z-10 flex h-[60px] items-center justify-between border-b bg-background px-4 md:px-6">
-        <Link href="/">
-          <h1 className="text-2xl font-semibold text-foreground">Zenith</h1>
-        </Link>
+        <h1 className="text-2xl font-semibold text-foreground">My Travel Plans</h1>
         <Dialog open={isNewPlanDialogOpen} onOpenChange={setIsNewPlanDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -162,13 +145,13 @@ export default function TravelPage() {
           </DialogContent>
         </Dialog>
       </header>
-      <main className="flex-1 p-4 md:p-10">
+      <main className="flex-1 p-4 md:p-10 overflow-auto bg-muted/20">
         <div className="mb-12 text-center">
             <h1 
               className="text-4xl md:text-5xl font-bold tracking-tight text-foreground inline-block px-8 py-2 bg-amber-100/80 "
               style={{fontFamily: "'Courier New', Courier, monospace", transform: 'rotate(-2deg)'}}
             >
-                My Travel Plans
+                My Travel Scrapbook
             </h1>
         </div>
         <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
@@ -236,6 +219,6 @@ export default function TravelPage() {
           ))}
         </div>
       </main>
-    </div>
+    </>
   );
 }
