@@ -2,6 +2,9 @@ export type Task = {
   id: string;
   text: string;
   completed: boolean;
+  date?: string;
+  duration?: number; // in minutes
+  color?: string;
 };
 
 export type Quote = {
@@ -10,7 +13,9 @@ export type Quote = {
 };
 
 export type TodoList = {
-  id: string;
+  id:string;
   name: string;
   tasks: Task[];
 };
+
+    
