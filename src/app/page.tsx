@@ -1,20 +1,8 @@
-"use client";
+'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { type Task, type TodoList as TodoListType } from '@/types';
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarTrigger,
-  SidebarContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarInset,
-} from '@/components/ui/sidebar';
-import { Plus, Search, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,17 +14,9 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-
-const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+import { QUOTES } from '@/lib/quotes';
+import TaskList from '@/components/task-list';
+import { Plus } from 'lucide-react';
 
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
@@ -46,44 +26,78 @@ export default function Home() {
   );
   const [isNewListDialogOpen, setIsNewListDialogOpen] = useState(false);
   const [newListName, setNewListName] = useState('');
+  const [quote, setQuote] = useState<{ quote: string; author: string } | null>(
+    null
+  );
   const { toast } = useToast();
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    setQuote(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
   }, []);
 
   useEffect(() => {
-    if (isClient) {
-        if (lists.length === 0) {
-        const defaultList: TodoListType = {
-            id: Date.now().toString(),
-            name: 'Odama Team',
-            tasks: [
-            { id: '1', text: 'Moodboarding - Showtime Project', completed: false, date: '2025-04-01T07:30:00', duration: 210, color: 'hsl(330, 80%, 90%)' },
-            { id: '2', text: 'Wireframe - Altafluent Project', completed: false, date: '2025-04-02T08:00:00', duration: 120, color: 'hsl(210, 80%, 90%)' },
-            { id: '3', text: 'Exploration Design - Odama Shot', completed: false, date: '2025-04-04T07:30:00', duration: 150, color: 'hsl(210, 80%, 90%)' },
-            { id: '4', text: 'Feedback - BigLeads Projects', completed: false, date: '2025-04-06T08:00:00', duration: 120, color: 'hsl(120, 60%, 90%)' },
-            { id: '5', text: 'Feedback - Altafluent Projects', completed: false, date: '2025-04-06T10:00:00', duration: 120, color: 'hsl(60, 80%, 90%)' },
-            { id: '6', text: 'Wireframe - RTGO Projects', completed: false, date: '2025-04-07T11:00:00', duration: 120, color: 'hsl(180, 80%, 90%)' },
-            ],
-        };
-        // Set a date that works with the default tasks
-        setCurrentDate(new Date('2025-04-01'));
-        setLists([defaultList]);
-        setActiveListId(defaultList.id);
-        } else if (!activeListId || !lists.some(l => l.id === activeListId)) {
-        setActiveListId(lists[0]?.id || null);
-        }
+    if (lists.length === 0) {
+      const defaultList: TodoListType = {
+        id: Date.now().toString(),
+        name: 'My Tasks',
+        tasks: [
+          { id: '1', text: 'Finish report for Q2', completed: false },
+          { id: '2', text: 'Schedule a dentist appointment', completed: true },
+          { id: '3', text: 'Pick up groceries', completed: false },
+        ],
+      };
+      setLists([defaultList]);
+      setActiveListId(defaultList.id);
+    } else if (!activeListId || !lists.some(l => l.id === activeListId)) {
+      setActiveListId(lists[0]?.id || null);
     }
-  }, [isClient, lists, setLists, activeListId, setActiveListId]);
+  }, [lists, setLists, activeListId, setActiveListId]);
 
   const activeList = useMemo(
     () => lists.find(list => list.id === activeListId),
     [lists, activeListId]
   );
-  
+
+  const handleAddTask = (taskText: string) => {
+    if (!activeListId) return;
+    const newTask: Task = {
+      id: Date.now().toString(),
+      text: taskText,
+      completed: false,
+    };
+    const updatedLists = lists.map(list =>
+      list.id === activeListId
+        ? { ...list, tasks: [...list.tasks, newTask] }
+        : list
+    );
+    setLists(updatedLists);
+  };
+
+  const handleToggleTask = (taskId: string) => {
+    if (!activeListId) return;
+    const updatedLists = lists.map(list =>
+      list.id === activeListId
+        ? {
+            ...list,
+            tasks: list.tasks.map(task =>
+              task.id === taskId ? { ...task, completed: !task.completed } : task
+            ),
+          }
+        : list
+    );
+    setLists(updatedLists);
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    if (!activeListId) return;
+    const updatedLists = lists.map(list =>
+      list.id === activeListId
+        ? { ...list, tasks: list.tasks.filter(task => task.id !== taskId) }
+        : list
+    );
+    setLists(updatedLists);
+  };
+
   const handleAddNewList = () => {
     if (newListName.trim() === '') {
       toast({
@@ -104,161 +118,69 @@ export default function Home() {
     setIsNewListDialogOpen(false);
   };
 
-  const weekDays = useMemo(() => {
-    const startOfWeek = new Date(currentDate);
-    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Start from Sunday
-    return Array.from({ length: 7 }).map((_, i) => {
-      const day = new Date(startOfWeek);
-      day.setDate(day.getDate() + i);
-      return day;
-    });
-  }, [currentDate]);
-
-  const timeSlots = Array.from({ length: 8 }, (_, i) => `${(i + 7).toString().padStart(2, '0')}:00`);
-
-  const getTaskTimeSpan = (task: Task) => {
-    const startTime = new Date(task.date as string);
-    const endTime = new Date(startTime.getTime() + (task.duration as number) * 60000);
-    return `${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-  }
-
-  if (!isClient) {
-    return null;
-  }
-
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full flex-col">
-        <Sidebar>
-          <SidebarContent className="p-0">
-            <SidebarHeader className="p-4 border-b">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                   <Button variant="ghost" className="w-full justify-start gap-2 px-2">
-                     <Avatar className="h-8 w-8">
-                       <AvatarImage src="https://picsum.photos/seed/1/32/32" />
-                       <AvatarFallback>OT</AvatarFallback>
-                     </Avatar>
-                     <span className="font-semibold text-lg">{activeList?.name}</span>
-                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuLabel>Your Teams</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                   {lists.map(list => (
-                     <DropdownMenuItem key={list.id} onClick={() => setActiveListId(list.id)}>
-                       {list.name}
-                     </DropdownMenuItem>
-                   ))}
-                   <DropdownMenuSeparator />
-                   <DropdownMenuItem onClick={() => setIsNewListDialogOpen(true)}>
-                     <Plus className="mr-2 h-4 w-4" />
-                     <span>Create Team</span>
-                   </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </SidebarHeader>
-             <SidebarMenu className="flex-1 p-4 pt-4">
-               <p className="mb-2 text-xs font-semibold text-muted-foreground tracking-wider uppercase">Track</p>
-               <SidebarMenuItem>
-                 <SidebarMenuButton className="justify-start"><Clock className="mr-2"/>Timer</SidebarMenuButton>
-               </SidebarMenuItem>
-               <p className="mt-4 mb-2 text-xs font-semibold text-muted-foreground tracking-wider uppercase">Analyze</p>
-               <SidebarMenuItem>
-                 <SidebarMenuButton className="justify-start">Report</SidebarMenuButton>
-               </SidebarMenuItem>
-                 <SidebarMenuItem>
-                 <SidebarMenuButton className="justify-start">Insight</SidebarMenuButton>
-               </SidebarMenuItem>
-
-               <p className="mt-4 mb-2 text-xs font-semibold text-muted-foreground tracking-wider uppercase">Manage</p>
-                <SidebarMenuItem>
-                 <SidebarMenuButton className="justify-start">Projects</SidebarMenuButton>
-               </SidebarMenuItem>
-                <SidebarMenuItem>
-                 <SidebarMenuButton className="justify-start">Clients</SidebarMenuButton>
-               </SidebarMenuItem>
-                <SidebarMenuItem>
-                 <SidebarMenuButton className="justify-start"><DollarSign className="mr-2"/>Billable rates</SidebarMenuButton>
-               </SidebarMenuItem>
-             </SidebarMenu>
-          </SidebarContent>
-        </Sidebar>
-
-        <div className="flex flex-col flex-1">
-          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-            <SidebarTrigger className="md:hidden" />
-            <div className="flex-1">
-              <h1 className="text-xl font-semibold tracking-tight text-foreground">
-                What have you done?
-              </h1>
+    <div className="flex min-h-screen w-full flex-col bg-background">
+      <header className="sticky top-0 z-10 flex h-[60px] items-center gap-4 border-b bg-background px-4 md:px-6">
+        <h1 className="text-2xl font-semibold text-foreground">
+          Zenith
+        </h1>
+      </header>
+      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10">
+        <div className="mx-auto w-full max-w-4xl">
+          {quote && (
+            <div className="mb-8 rounded-lg bg-card p-6 text-center">
+              <blockquote className="text-xl italic">
+                "{quote.quote}"
+              </blockquote>
+              <cite className="mt-4 block text-right font-semibold">
+                - {quote.author}
+              </cite>
             </div>
-            <div className="flex items-center gap-2">
-               <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input type="search" placeholder="Search tasks..." className="pl-8 sm:w-[200px] md:w-[300px]" />
-              </div>
-              <Button variant="outline">Customize</Button>
-            </div>
-          </header>
+          )}
 
-          <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6 overflow-auto">
-            <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => setCurrentDate(d => { const newDate = new Date(d); newDate.setDate(d.getDate() - 7); return newDate; })}><ChevronLeft className="h-4 w-4" /></Button>
-                  <Button variant="ghost">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</Button>
-                  <Button variant="outline" size="icon" onClick={() => setCurrentDate(d => { const newDate = new Date(d); newDate.setDate(d.getDate() + 7); return newDate; })}><ChevronRight className="h-4 w-4" /></Button>
-                </div>
-                 <Button variant="outline" onClick={() => setCurrentDate(new Date())}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  Today
+          <div className="mb-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold tracking-tight">Todo Lists</h2>
+              <Button onClick={() => setIsNewListDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                New List
+              </Button>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {lists.map(list => (
+                <Button
+                  key={list.id}
+                  variant={activeListId === list.id ? 'default' : 'outline'}
+                  onClick={() => setActiveListId(list.id)}
+                >
+                  {list.name}
                 </Button>
+              ))}
             </div>
-            
-            <div className="grid grid-cols-[auto,1fr] flex-1">
-                <div className="pr-4 border-r">
-                    {timeSlots.map(time => (
-                        <div key={time} className="h-24 text-right text-sm text-muted-foreground pr-2 -mt-3 pt-4">{time}</div>
-                    ))}
-                </div>
+          </div>
 
-                <div className="grid grid-cols-7">
-                    {weekDays.map((day, dayIndex) => (
-                        <div key={day.toISOString()} className="border-r relative">
-                            <div className="text-center py-2 border-b">
-                                <p className="text-sm font-medium">{day.getDate()}</p>
-                                <p className="text-xs text-muted-foreground">{dayNames[day.getDay()]}</p>
-                            </div>
-                            <div className="h-full relative">
-                                {activeList?.tasks.filter(task => new Date(task.date as string).toDateString() === day.toDateString())
-                                .map(task => {
-                                    const taskDate = new Date(task.date as string);
-                                    const top = (taskDate.getHours() - 7 + taskDate.getMinutes()/60) * 6; // 6rem per hour (h-24)
-                                    const height = (task.duration as number / 60) * 6;
-                                    return (
-                                        <div key={task.id} 
-                                             className="absolute w-[95%] left-1/2 -translate-x-1/2 p-2 rounded-lg border text-xs"
-                                             style={{ top: `${top}rem`, height: `${height}rem`, backgroundColor: task.color, borderColor: task.color ? `hsl(from ${task.color} h s calc(l - 10%))` : 'hsl(var(--border))' }}>
-                                             <p className="font-semibold">{task.text}</p>
-                                             <p className="text-gray-600">{getTaskTimeSpan(task)}</p>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    ))}
-                </div>
+          {activeList ? (
+            <TaskList
+              key={activeList.id}
+              list={activeList}
+              onAddTask={handleAddTask}
+              onToggleTask={handleToggleTask}
+              onDeleteTask={handleDeleteTask}
+            />
+          ) : (
+            <div className="text-center text-muted-foreground">
+              <p>Select a list or create a new one to get started.</p>
             </div>
-          </main>
+          )}
         </div>
-      </div>
+      </main>
 
       <Dialog open={isNewListDialogOpen} onOpenChange={setIsNewListDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create a new team</DialogTitle>
+            <DialogTitle>Create a new list</DialogTitle>
             <DialogDescription>
-              Give your new team a name.
+              Give your new list a name.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -266,16 +188,16 @@ export default function Home() {
               id="name"
               value={newListName}
               onChange={e => setNewListName(e.target.value)}
-              placeholder="e.g. Design Team, Marketing"
+              placeholder="e.g. Work, Personal"
               onKeyDown={(e) => e.key === 'Enter' && handleAddNewList()}
             />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsNewListDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleAddNewList}>Create Team</Button>
+            <Button onClick={handleAddNewList}>Create List</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </SidebarProvider>
+    </div>
   );
 }
