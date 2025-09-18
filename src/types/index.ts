@@ -18,4 +18,12 @@ export type TodoList = {
   tasks: Task[];
 };
 
+export type Vision = {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  imageHint: string;
+  completed: boolean;
+};
     

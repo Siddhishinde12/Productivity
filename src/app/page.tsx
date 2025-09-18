@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Plus,
   ListTodo,
+  Rocket,
 } from 'lucide-react';
 import {
   format,
@@ -122,7 +123,7 @@ export default function Home() {
                  <AvatarImage src="/placeholder.svg" alt="User" />
                  <AvatarFallback>OT</AvatarFallback>
                </Avatar>
-               <span className="font-semibold text-lg">{activeList?.name}</span>
+               <span className="font-semibold text-lg">{activeList?.name || 'My List'}</span>
              </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
@@ -154,6 +155,12 @@ export default function Home() {
             <Button variant="outline" className="w-full justify-start">
               <LayoutDashboard className="mr-2" />
               Dashboard
+            </Button>
+          </Link>
+          <Link href="/vision-board">
+            <Button variant="outline" className="w-full justify-start">
+              <Rocket className="mr-2" />
+              Vision Board
             </Button>
           </Link>
         </nav>
