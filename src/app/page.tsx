@@ -12,6 +12,7 @@ import {
   ListTodo,
   Rocket,
   Dumbbell,
+  Plane,
 } from 'lucide-react';
 import {
   format,
@@ -168,6 +169,12 @@ export default function Home() {
             <Button variant="outline" className="w-full justify-start">
               <Dumbbell className="mr-2" />
               Gym & Health
+            </Button>
+          </Link>
+           <Link href="/travel">
+            <Button variant="outline" className="w-full justify-start">
+              <Plane className="mr-2" />
+              Travel Plans
             </Button>
           </Link>
         </nav>

@@ -34,3 +34,12 @@ export type Workout = {
   duration: number; // in minutes
 };
     
+export type TravelPlan = {
+  id: string;
+  destination: string;
+  description: string;
+  imageUrl: string;
+  imageHint: string;
+  status: 'planned' | 'completed' | 'bucket-list';
+  departureDate?: string;
+};
