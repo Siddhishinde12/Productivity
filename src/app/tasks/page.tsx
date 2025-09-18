@@ -258,3 +258,5 @@ function AddTaskDialog({ onAddTask }: { onAddTask: (details: { title: string, de
       </Dialog>
   )
 }
+
+    

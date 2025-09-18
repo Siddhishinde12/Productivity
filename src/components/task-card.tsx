@@ -43,9 +43,11 @@ export default function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
                     {task.description}
                 </p>
             )}
-            {task.date && !isToday(new Date(task.date)) && (
+            {task.date && (
                 <p className="text-xs text-muted-foreground mt-1">
-                    {format(new Date(task.date), 'MMM d, yyyy')}
+                    {isToday(new Date(task.date)) 
+                      ? format(new Date(task.date), 'p') 
+                      : format(new Date(task.date), 'MMM d, yyyy, p')}
                 </p>
             )}
         </div>
@@ -62,3 +64,5 @@ export default function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
     </Card>
   );
 }
+
+    
