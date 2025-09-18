@@ -47,6 +47,11 @@ export default function Home() {
   const [newListName, setNewListName] = useState('');
   const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (lists.length === 0) {
@@ -120,6 +125,10 @@ export default function Home() {
     const startTime = new Date(task.date as string);
     const endTime = new Date(startTime.getTime() + (task.duration as number) * 60000);
     return `${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }
+
+  if (!isClient) {
+    return null;
   }
 
   return (
