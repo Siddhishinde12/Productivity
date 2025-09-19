@@ -283,7 +283,7 @@ export default function Home() {
         <ScrollArea className="h-[calc(100vh-100px)]">
           <div className="space-y-2">
             {allTasks
-              .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1))
+              .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date || 0).getTime() - new Date(b.date || 0).getTime())
               .map(task => (
                 <div
                   key={task.id}
