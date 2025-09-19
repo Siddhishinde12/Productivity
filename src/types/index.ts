@@ -14,7 +14,7 @@ export type Quote = {
 };
 
 export type TodoList = {
-  id:string;
+  id: string;
   name: string;
   tasks: Task[];
 };
@@ -34,7 +34,7 @@ export type Workout = {
   type: string;
   duration: number; // in minutes
 };
-    
+
 export type TravelPlan = {
   id: string;
   destination: string;
@@ -46,10 +46,10 @@ export type TravelPlan = {
 };
 
 export type Transaction = {
-    id: string;
-    description: string;
-    amount: number;
-    category: string;
-    date: string;
-    type: 'income' | 'expense';
-}
+  id: string;
+  description: string;
+  amount: number;
+  category: string;
+  date: string;
+  type: 'income' | 'expense';
+};

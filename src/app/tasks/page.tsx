@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -22,7 +23,6 @@ import { Plus, Calendar as CalendarIcon, ListTodo } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import TaskRow from '@/components/task-row';
-
 
 export default function TasksPage() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
@@ -44,9 +44,9 @@ export default function TasksPage() {
           id: 'default-list',
           name: 'My Tasks',
           tasks: [
-            { id: '1', text: 'Finish report for Q2', description: 'Complete the quarterly financial report.', completed: false, date: new Date().toISOString() },
-            { id: '2', text: 'Schedule dentist appointment', description: 'Call Dr. Smith\'s office.', completed: true, date: new Date().toISOString() },
-            { id: '3', text: 'Pick up groceries', description: 'Milk, bread, eggs.', completed: false, date: new Date().toISOString() },
+            { id: '1', text: 'Finish report for Q2', description: 'Complete the quarterly financial report.', completed: false, date: new Date().toISOString(), duration: 120 },
+            { id: '2', text: 'Schedule dentist appointment', description: 'Call Dr. Smith\'s office.', completed: true, date: new Date().toISOString(), duration: 45 },
+            { id: '3', text: 'Pick up groceries', description: 'Milk, bread, eggs.', completed: false, date: new Date().toISOString(), duration: 60 },
           ],
         };
         setLists([defaultList]);
@@ -68,22 +68,30 @@ export default function TasksPage() {
   }, [activeList]);
 
 
-  const handleAddTask = (taskDetails: { title: string, description: string, date: Date | undefined }) => {
-    if (!activeListId) return;
+  const handleAddTask = (taskDetails: { title: string, description: string, date: Date | undefined, time: string, duration: number }) => {
+    if (!activeListId) return false;
      if (!taskDetails.title) {
         toast({
             variant: 'destructive',
             title: 'Error',
             description: 'Task title cannot be empty.',
         });
-        return;
+        return false;
     }
+    
+    let finalDate = taskDetails.date ? new Date(taskDetails.date) : new Date();
+    if (taskDetails.time) {
+        const [hours, minutes] = taskDetails.time.split(':');
+        finalDate.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+    }
+
     const newTask: Task = {
       id: Date.now().toString(),
       text: taskDetails.title,
       description: taskDetails.description,
       completed: false,
-      date: taskDetails.date ? taskDetails.date.toISOString() : new Date().toISOString(),
+      date: finalDate.toISOString(),
+      duration: taskDetails.duration
     };
     const updatedLists = lists.map(list =>
       list.id === activeListId
@@ -154,26 +162,23 @@ export default function TasksPage() {
   );
 }
 
-function AddTaskDialog({ onAddTask }: { onAddTask: (details: { title: string, description: string, date: Date | undefined }) => boolean | void }) {
+function AddTaskDialog({ onAddTask }: { onAddTask: (details: { title: string, description: string, date: Date | undefined, time: string, duration: number }) => boolean | void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [time, setTime] = useState(format(new Date(), 'HH:mm'));
+  const [duration, setDuration] = useState('60');
+
 
   const handleSave = () => {
-    let finalDate = date ? new Date(date) : new Date();
-    if (time) {
-        const [hours, minutes] = time.split(':');
-        finalDate.setHours(parseInt(hours, 10), parseInt(minutes, 10));
-    }
-
-    const success = onAddTask({ title, description, date: finalDate });
+    const success = onAddTask({ title, description, date, time, duration: parseInt(duration, 10) });
     if (success) {
       setTitle('');
       setDescription('');
       setDate(new Date());
       setTime(format(new Date(), 'HH:mm'));
+      setDuration('60');
       setIsOpen(false);
     }
   };
@@ -236,6 +241,16 @@ function AddTaskDialog({ onAddTask }: { onAddTask: (details: { title: string, de
                     value={time}
                     onChange={e => setTime(e.target.value)}
                 />
+            </div>
+            <div>
+              <Label htmlFor="duration">Duration (in minutes)</Label>
+              <Input
+                id="duration"
+                type="number"
+                value={duration}
+                onChange={e => setDuration(e.target.value)}
+                placeholder="e.g., 60"
+              />
             </div>
           </div>
           <DialogFooter>

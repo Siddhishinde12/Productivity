@@ -49,11 +49,10 @@ export default function TaskRow({ task, onToggle, onDelete }: TaskRowProps) {
           </p>
         )}
         {task.date && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {isToday(new Date(task.date))
-              ? format(new Date(task.date), 'p')
-              : format(new Date(task.date), 'MMM d, yyyy, p')}
-          </p>
+           <p className="text-xs text-muted-foreground mt-1">
+                {format(new Date(task.date), 'MMM d, p')}
+                {task.duration && ` (${task.duration} min)`}
+            </p>
         )}
       </div>
       <Button
