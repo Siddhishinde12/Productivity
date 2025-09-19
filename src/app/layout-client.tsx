@@ -25,6 +25,7 @@ import {
   Moon,
   Sun,
   Calendar,
+  DollarSign,
 } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { type TodoList } from '@/types';
@@ -123,6 +124,12 @@ export default function AppLayoutClient({
             <Button variant="outline" className="w-full justify-start">
               <ListTodo className="mr-2" />
               Task List
+            </Button>
+          </Link>
+          <Link href="/money">
+            <Button variant="outline" className="w-full justify-start">
+              <DollarSign className="mr-2" />
+              Money Management
             </Button>
           </Link>
           <Link href="/vision-board">
