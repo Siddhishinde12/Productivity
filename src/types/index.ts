@@ -44,3 +44,12 @@ export type TravelPlan = {
   status: 'planned' | 'completed' | 'bucket-list';
   departureDate?: string;
 };
+
+export type Transaction = {
+    id: string;
+    description: string;
+    amount: number;
+    category: string;
+    date: string;
+    type: 'income' | 'expense';
+}
