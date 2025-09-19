@@ -24,6 +24,7 @@ import {
   Rocket,
   Moon,
   Sun,
+  Calendar,
 } from 'lucide-react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { type TodoList } from '@/types';
@@ -106,9 +107,15 @@ export default function AppLayoutClient({
         </DropdownMenu>
         )}
         <nav className="flex flex-col gap-2">
-           <Link href="/">
+           <Link href="/dashboard">
             <Button variant="outline" className="w-full justify-start">
               <LayoutDashboard className="mr-2" />
+              Dashboard
+            </Button>
+          </Link>
+          <Link href="/">
+            <Button variant="outline" className="w-full justify-start">
+              <Calendar className="mr-2" />
               Calendar
             </Button>
           </Link>
@@ -116,12 +123,6 @@ export default function AppLayoutClient({
             <Button variant="outline" className="w-full justify-start">
               <ListTodo className="mr-2" />
               Task List
-            </Button>
-          </Link>
-          <Link href="/dashboard">
-            <Button variant="outline" className="w-full justify-start">
-              <LayoutDashboard className="mr-2" />
-              Dashboard
             </Button>
           </Link>
           <Link href="/vision-board">
