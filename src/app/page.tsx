@@ -39,7 +39,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import TodayTodoList from '@/components/today-todo-list';
 import { INDIAN_FESTIVALS_2024, type Festival } from '@/lib/festivals';
-
+import { Card, CardContent } from '@/components/ui/card';
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
@@ -47,6 +47,8 @@ const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (mid
 const festivalMap: Map<string, string> = new Map(
   INDIAN_FESTIVALS_2024.map(f => [f.date, f.name])
 );
+const festivalDays = INDIAN_FESTIVALS_2024.map(f => new Date(f.date + 'T00:00:00'));
+
 
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
@@ -232,7 +234,7 @@ export default function Home() {
                         className="h-16 border-b flex items-center justify-center"
                       >
                         <span className="relative -top-3">
-                          {hour === 24
+                          {hour === 24 || hour === 0
                             ? '12 AM'
                             : hour < 12
                             ? `${hour} AM`
@@ -300,7 +302,7 @@ export default function Home() {
                     </div>
                   </div>
                 )})}
-                 {isSameDay(currentDate, new Date()) && (
+                 {isToday(currentDate) && (
                   <div
                     className="absolute left-0 right-0 h-0.5 bg-red-500 z-20"
                     style={{ top: `${currentTimePosition + 73}px` }}
@@ -313,7 +315,21 @@ export default function Home() {
           </ScrollArea>
         </main>
       </div>
-      <aside className="w-80 flex-shrink-0 border-l bg-card p-4">
+      <aside className="w-80 flex-shrink-0 border-l bg-card p-4 flex flex-col gap-4">
+        <Card>
+            <CardContent className="p-2">
+                <Calendar
+                    mode="single"
+                    selected={currentDate}
+                    onSelect={(date) => date && setCurrentDate(date)}
+                    className="w-full"
+                    modifiers={{ festival: festivalDays }}
+                    modifiersClassNames={{
+                      festival: 'day-festival'
+                    }}
+                />
+            </CardContent>
+        </Card>
         <TodayTodoList tasks={todaysTasks} />
       </aside>
     </div>
