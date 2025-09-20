@@ -19,6 +19,7 @@ import {
   setMinutes,
   isToday,
   getDay,
+  parse,
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -44,10 +45,14 @@ import { Card, CardContent } from '@/components/ui/card';
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
 
+const parseDate = (dateStr: string): Date => {
+  return parse(dateStr, 'yyyy-MM-dd', new Date());
+};
+
 const festivalMap: Map<string, string> = new Map(
   INDIAN_FESTIVALS_2024.map(f => [f.date, f.name])
 );
-const festivalDays = INDIAN_FESTIVALS_2024.map(f => new Date(f.date + 'T00:00:00'));
+const festivalDays = INDIAN_FESTIVALS_2024.map(f => parseDate(f.date));
 
 
 export default function Home() {
