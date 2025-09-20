@@ -39,7 +39,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const hours = Array.from({ length: 24 }, (_, i) => i);
+const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
 
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
@@ -171,7 +171,7 @@ export default function Home() {
     const startMinute = taskDate.getMinutes();
     const duration = task.duration || 60; // Default to 60 minutes
 
-    const top = (startHour + startMinute / 60) * 64; // 64px per hour
+    const top = (startHour - 5 + startMinute / 60) * 64; // 64px per hour, starting from 5 AM
     const height = (duration / 60) * 64;
 
     return { top: `${top}px`, height: `${height}px` };
@@ -216,7 +216,7 @@ export default function Home() {
                       className="h-16 border-b flex items-center justify-center"
                     >
                       <span className="relative -top-3">
-                        {hour === 0
+                        {hour === 24
                           ? '12 AM'
                           : hour < 12
                           ? `${hour} AM`
