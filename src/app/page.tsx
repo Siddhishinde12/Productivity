@@ -272,8 +272,8 @@ export default function Home() {
                       >
                         {format(day, 'd')}
                       </p>
-                      {festival && (
-                          <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold truncate mt-1">
+                       {festival && (
+                          <p className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-semibold truncate mt-1">
                               {festival}
                           </p>
                       )}
