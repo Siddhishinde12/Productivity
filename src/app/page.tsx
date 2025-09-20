@@ -204,77 +204,77 @@ export default function Home() {
            <AddEventDialog onAddTask={handleAddTask} />
         </header>
         <main className="flex-1 overflow-hidden">
-          <div className="flex h-full">
-            <div className="w-16 flex-shrink-0 text-xs text-center text-muted-foreground">
-              <ScrollArea className="h-full">
+          <ScrollArea className="h-full">
+            <div className="flex h-full">
+              <div className="w-16 flex-shrink-0 text-xs text-center text-muted-foreground">
                 <div className="relative">
-                  {/* Empty space for day headers */}
-                  <div className="h-[73px] border-b"></div>
-                  {hours.map(hour => (
-                    <div
-                      key={hour}
-                      className="h-16 border-b flex items-center justify-center"
-                    >
-                      <span className="relative -top-3">
-                        {hour === 24
-                          ? '12 AM'
-                          : hour < 12
-                          ? `${hour} AM`
-                          : hour === 12
-                          ? '12 PM'
-                          : `${hour - 12} PM`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-            <div className="grid flex-1 grid-cols-7">
-              {week.map(day => (
-                <div key={day.toISOString()} className={cn('border-r relative')}>
-                  <div className="sticky top-0 z-10 bg-background border-b p-2 text-center h-[73px]">
-                    <p className="text-sm text-muted-foreground">
-                      {dayNames[day.getDay()]}
-                    </p>
-                    <p
-                      className={cn('text-2xl font-bold', {
-                        'text-primary bg-primary/20 rounded-full w-10 h-10 flex items-center justify-center mx-auto': isSameDay(
-                          day,
-                          new Date()
-                        ),
-                      })}
-                    >
-                      {format(day, 'd')}
-                    </p>
-                  </div>
-                  <div className="relative h-full">
-                    {/* Background hour lines */}
+                    {/* Empty space for day headers */}
+                    <div className="h-[73px] border-b"></div>
                     {hours.map(hour => (
-                      <div key={hour} className="h-16 border-b"></div>
-                    ))}
-                    {getTasksForDay(day).map(task => (
                       <div
-                        key={task.id}
-                        className={cn(
-                          'absolute w-[95%] ml-[2.5%] p-2 rounded-lg border text-xs shadow-md',
-                          'bg-primary/20 border-primary/50 text-primary-foreground',
-                          task.completed && 'opacity-50 bg-secondary border-secondary/50'
-                        )}
-                        style={getTaskPosition(task)}
+                        key={hour}
+                        className="h-16 border-b flex items-center justify-center"
                       >
-                        <p className={cn('font-bold', task.completed && 'line-through')}>
-                          {task.text}
-                        </p>
-                        <p>
-                          {format(new Date(task.date!), 'h:mm a')} ({task.duration} min)
-                        </p>
+                        <span className="relative -top-3">
+                          {hour === 24
+                            ? '12 AM'
+                            : hour < 12
+                            ? `${hour} AM`
+                            : hour === 12
+                            ? '12 PM'
+                            : `${hour - 12} PM`}
+                        </span>
                       </div>
                     ))}
                   </div>
-                </div>
-              ))}
+              </div>
+              <div className="grid flex-1 grid-cols-7">
+                {week.map(day => (
+                  <div key={day.toISOString()} className={cn('border-r relative')}>
+                    <div className="sticky top-0 z-10 bg-background border-b p-2 text-center h-[73px]">
+                      <p className="text-sm text-muted-foreground">
+                        {dayNames[day.getDay()]}
+                      </p>
+                      <p
+                        className={cn('text-2xl font-bold', {
+                          'text-primary bg-primary/20 rounded-full w-10 h-10 flex items-center justify-center mx-auto': isSameDay(
+                            day,
+                            new Date()
+                          ),
+                        })}
+                      >
+                        {format(day, 'd')}
+                      </p>
+                    </div>
+                    <div className="relative h-full">
+                      {/* Background hour lines */}
+                      {hours.map(hour => (
+                        <div key={hour} className="h-16 border-b"></div>
+                      ))}
+                      {getTasksForDay(day).map(task => (
+                        <div
+                          key={task.id}
+                          className={cn(
+                            'absolute w-[95%] ml-[2.5%] p-2 rounded-lg border text-xs shadow-md',
+                            'bg-primary/20 border-primary/50 text-primary-foreground',
+                            task.completed && 'opacity-50 bg-secondary border-secondary/50'
+                          )}
+                          style={getTaskPosition(task)}
+                        >
+                          <p className={cn('font-bold', task.completed && 'line-through')}>
+                            {task.text}
+                          </p>
+                          <p>
+                            {format(new Date(task.date!), 'h:mm a')} ({task.duration} min)
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          </ScrollArea>
         </main>
       </div>
       <aside className="w-80 flex-shrink-0 border-l bg-card p-4">
