@@ -37,8 +37,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
-import TodayTodoList from '@/components/today-todo-list';
-import { INDIAN_FESTIVALS_2024, type Festival } from '@/lib/festivals';
+import TodayFocus from '@/components/today-focus';
+import { INDIAN_FESTIVALS_2024 } from '@/lib/festivals';
 import { Card, CardContent } from '@/components/ui/card';
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -126,6 +126,10 @@ export default function Home() {
   const todaysTasks = useMemo(() => {
     return allTasks.filter(task => task.date && isToday(new Date(task.date)));
   }, [allTasks]);
+
+  const todaysFestival = useMemo(() => {
+    return festivalMap.get(format(new Date(), 'yyyy-MM-dd'));
+  }, []);
 
   const getTasksForDay = useCallback(
     (day: Date) => {
@@ -269,7 +273,7 @@ export default function Home() {
                         {format(day, 'd')}
                       </p>
                       {festival && (
-                          <p className="text-[10px] text-purple-600 font-semibold truncate mt-1">
+                          <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold truncate mt-1">
                               {festival}
                           </p>
                       )}
@@ -330,7 +334,7 @@ export default function Home() {
                 />
             </CardContent>
         </Card>
-        <TodayTodoList tasks={todaysTasks} />
+        <TodayFocus tasks={todaysTasks} festival={todaysFestival} />
       </aside>
     </div>
   );
@@ -348,7 +352,7 @@ function AddEventDialog({ onAddTask }: { onAddTask: (details: { title: string, d
 
   const handleSave = () => {
     const success = onAddTask({ title, description, date, time, duration: parseInt(duration, 10) });
-    if (success) {
+    if (success !== false) {
       setTitle('');
       setDescription('');
       setDate(new Date());
