@@ -209,9 +209,6 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 h-full">
-       <aside className="w-80 flex-shrink-0 border-r bg-card p-4">
-        <TodayTodoList tasks={todaysTasks} />
-      </aside>
       <div className="flex flex-1 flex-col">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4 sm:px-6">
           <div className="flex items-center gap-4">
@@ -316,6 +313,9 @@ export default function Home() {
           </ScrollArea>
         </main>
       </div>
+      <aside className="w-80 flex-shrink-0 border-l bg-card p-4">
+        <TodayTodoList tasks={todaysTasks} />
+      </aside>
     </div>
   );
 }
