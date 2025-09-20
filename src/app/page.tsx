@@ -17,12 +17,11 @@ import {
   isSameDay,
   setHours,
   setMinutes,
-  parse,
   isToday,
+  getDay,
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -39,9 +38,15 @@ import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import TodayTodoList from '@/components/today-todo-list';
+import { INDIAN_FESTIVALS_2024, type Festival } from '@/lib/festivals';
+
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
+
+const festivalMap: Map<string, string> = new Map(
+  INDIAN_FESTIVALS_2024.map(f => [f.date, f.name])
+);
 
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
@@ -128,21 +133,6 @@ export default function Home() {
     },
     [allTasks]
   );
-
-  const handleToggleTask = (taskId: string) => {
-    if (!activeListId) return;
-    const updatedLists = lists.map(list =>
-      list.id === activeListId
-        ? {
-            ...list,
-            tasks: list.tasks.map(task =>
-              task.id === taskId ? { ...task, completed: !task.completed } : task
-            ),
-          }
-        : list
-    );
-    setLists(updatedLists);
-  };
 
   const handleAddTask = (taskDetails: { title: string, description: string, date: Date | undefined, time: string, duration: number }) => {
     if (!activeListId) return false;
@@ -255,9 +245,14 @@ export default function Home() {
                   </div>
               </div>
               <div className="grid flex-1 grid-cols-7 relative">
-                {week.map(day => (
-                  <div key={day.toISOString()} className={cn('border-r relative')}>
-                    <div className="sticky top-0 z-10 bg-background border-b p-2 text-center h-[73px]">
+                {week.map(day => {
+                  const dayOfWeek = getDay(day);
+                  const isSunday = dayOfWeek === 0;
+                  const festival = festivalMap.get(format(day, 'yyyy-MM-dd'));
+
+                  return (
+                  <div key={day.toISOString()} className={cn('border-r relative', isSunday && 'bg-muted/30')}>
+                    <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b p-2 text-center h-[73px]">
                       <p className="text-sm text-muted-foreground">
                         {dayNames[day.getDay()]}
                       </p>
@@ -271,6 +266,11 @@ export default function Home() {
                       >
                         {format(day, 'd')}
                       </p>
+                      {festival && (
+                          <p className="text-[10px] text-purple-600 font-semibold truncate mt-1">
+                              {festival}
+                          </p>
+                      )}
                     </div>
                     <div className="relative h-full">
                       {/* Background hour lines */}
@@ -299,7 +299,7 @@ export default function Home() {
                       ))}
                     </div>
                   </div>
-                ))}
+                )})}
                  {isSameDay(currentDate, new Date()) && (
                   <div
                     className="absolute left-0 right-0 h-0.5 bg-red-500 z-20"
@@ -343,7 +343,8 @@ function AddEventDialog({ onAddTask }: { onAddTask: (details: { title: string, d
   };
 
   return (
-     <Dialog open={isOpen} onOpenChange={setIsOpen}>
+     <>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -418,5 +419,6 @@ function AddEventDialog({ onAddTask }: { onAddTask: (details: { title: string, d
           </DialogFooter>
         </DialogContent>
       </Dialog>
+     </>
   )
 }
