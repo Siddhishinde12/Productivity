@@ -46,7 +46,8 @@ const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
 
 const parseDate = (dateStr: string): Date => {
-  return parse(dateStr, 'yyyy-MM-dd', new Date());
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
 };
 
 const festivalMap: Map<string, string> = new Map(
@@ -133,7 +134,8 @@ export default function Home() {
   }, [allTasks]);
 
   const todaysFestival = useMemo(() => {
-    return festivalMap.get(format(new Date(), 'yyyy-MM-dd'));
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    return festivalMap.get(todayStr);
   }, []);
 
   const getTasksForDay = useCallback(
