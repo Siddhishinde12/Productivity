@@ -57,7 +57,7 @@ export default function AppLayoutClient({
       <aside className="w-64 flex-shrink-0 border-r bg-card p-4 flex flex-col">
         <div className="flex items-center justify-between mb-8">
             <Link href="/">
-              <h1 className="text-2xl font-bold text-foreground">Zenith</h1>
+              <h1 className="text-2xl font-bold text-foreground">Hello Siddhi</h1>
             </Link>
              {isClient && (
                 <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
@@ -76,7 +76,7 @@ export default function AppLayoutClient({
             >
               <Avatar className="h-8 w-8">
                 <AvatarImage src="/placeholder.svg" alt="User" />
-                <AvatarFallback>OT</AvatarFallback>
+                <AvatarFallback>sid</AvatarFallback>
               </Avatar>
               <span className="font-semibold text-lg">
                 {activeList?.name || 'My List'}

@@ -13,7 +13,7 @@ const fontSans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Zenith Productivity',
+  title: 'Siddhi Daily Dairy',
   description: 'Elevate your focus and efficiency.',
 };
 
