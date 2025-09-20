@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { type Task, type TodoList as TodoListType } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import {
   setHours,
   setMinutes,
   parse,
+  isToday,
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,6 +38,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
+import TodayTodoList from '@/components/today-todo-list';
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
@@ -49,10 +51,22 @@ export default function Home() {
   );
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isClient, setIsClient] = useState(false);
+  const [currentTimePosition, setCurrentTimePosition] = useState(0);
   const { toast } = useToast();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsClient(true);
+    const updateCurrentTime = () => {
+      const now = new Date();
+      const position = (now.getHours() - 5 + now.getMinutes() / 60) * 64;
+      setCurrentTimePosition(position);
+    };
+
+    updateCurrentTime();
+    const intervalId = setInterval(updateCurrentTime, 60000); // Update every minute
+
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
@@ -78,6 +92,14 @@ export default function Home() {
     }
   }, [isClient, lists, setLists, activeListId, setActiveListId]);
 
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      // Scroll to a position around the current time, e.g., 2 hours before
+      const scrollPosition = Math.max(0, currentTimePosition - 128);
+      scrollAreaRef.current.scrollTo({ top: scrollPosition, behavior: 'smooth' });
+    }
+  }, [isClient, currentTimePosition]);
+
   const activeList = useMemo(
     () => lists.find(list => list.id === activeListId),
     [lists, activeListId]
@@ -93,6 +115,10 @@ export default function Home() {
     if (!isClient || !activeList) return [];
     return activeList.tasks;
   }, [activeList, isClient]);
+  
+  const todaysTasks = useMemo(() => {
+    return allTasks.filter(task => task.date && isToday(new Date(task.date)));
+  }, [allTasks]);
 
   const getTasksForDay = useCallback(
     (day: Date) => {
@@ -183,6 +209,9 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 h-full">
+       <aside className="w-80 flex-shrink-0 border-r bg-card p-4">
+        <TodayTodoList tasks={todaysTasks} />
+      </aside>
       <div className="flex flex-1 flex-col">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-4 sm:px-6">
           <div className="flex items-center gap-4">
@@ -204,7 +233,7 @@ export default function Home() {
            <AddEventDialog onAddTask={handleAddTask} />
         </header>
         <main className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full">
+          <ScrollArea className="h-full" ref={scrollAreaRef}>
             <div className="flex h-full">
               <div className="w-16 flex-shrink-0 text-xs text-center text-muted-foreground">
                 <div className="relative">
@@ -228,7 +257,7 @@ export default function Home() {
                     ))}
                   </div>
               </div>
-              <div className="grid flex-1 grid-cols-7">
+              <div className="grid flex-1 grid-cols-7 relative">
                 {week.map(day => (
                   <div key={day.toISOString()} className={cn('border-r relative')}>
                     <div className="sticky top-0 z-10 bg-background border-b p-2 text-center h-[73px]">
@@ -264,51 +293,29 @@ export default function Home() {
                           <p className={cn('font-bold', task.completed && 'line-through')}>
                             {task.text}
                           </p>
-                          <p>
-                            {format(new Date(task.date!), 'h:mm a')} ({task.duration} min)
-                          </p>
+                           {task.duration && (
+                              <p>
+                                {format(new Date(task.date!), 'h:mm a')} ({task.duration} min)
+                              </p>
+                            )}
                         </div>
                       ))}
                     </div>
                   </div>
                 ))}
+                 {isSameDay(currentDate, new Date()) && (
+                  <div
+                    className="absolute left-0 right-0 h-0.5 bg-red-500 z-20"
+                    style={{ top: `${currentTimePosition + 73}px` }}
+                  >
+                    <div className="absolute -left-1.5 -top-1.5 h-3 w-3 rounded-full bg-red-500"></div>
+                  </div>
+                )}
               </div>
             </div>
           </ScrollArea>
         </main>
       </div>
-      <aside className="w-80 flex-shrink-0 border-l bg-card p-4">
-        <h2 className="text-lg font-semibold tracking-tight mb-4">
-          {activeList?.name || 'My Tasks'}
-        </h2>
-        <ScrollArea className="h-[calc(100vh-100px)]">
-          <div className="space-y-2">
-            {allTasks
-              .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date || 0).getTime() - new Date(b.date || 0).getTime())
-              .map(task => (
-                <div
-                  key={task.id}
-                  className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted"
-                >
-                  <Checkbox
-                    id={`task-${task.id}`}
-                    checked={task.completed}
-                    onCheckedChange={() => handleToggleTask(task.id)}
-                  />
-                  <label
-                    htmlFor={`task-${task.id}`}
-                    className={cn(
-                      'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-                      task.completed && 'line-through text-muted-foreground'
-                    )}
-                  >
-                    {task.text}
-                  </label>
-                </div>
-              ))}
-          </div>
-        </ScrollArea>
-      </aside>
     </div>
   );
 }
