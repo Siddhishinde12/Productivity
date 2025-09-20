@@ -53,3 +53,14 @@ export type Transaction = {
   date: string;
   type: 'income' | 'expense';
 };
+
+export type Mood = 'happy' | 'neutral' | 'sad' | 'angry';
+
+export type DiaryEntry = {
+  id: string;
+  date: string;
+  title: string;
+  content: string;
+  mood: Mood;
+  imageUrl?: string;
+};

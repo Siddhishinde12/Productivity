@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { type Task, type TodoList as TodoListType } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -17,11 +17,12 @@ import {
   isSameDay,
   setHours,
   setMinutes,
+  isToday,
+  getDay,
   parse,
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -37,9 +38,23 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
+import TodayFocus from '@/components/today-focus';
+import { INDIAN_FESTIVALS_2024 } from '@/lib/festivals';
+import { Card, CardContent } from '@/components/ui/card';
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
+
+const parseDate = (dateStr: string): Date => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
+const festivalMap: Map<string, string> = new Map(
+  INDIAN_FESTIVALS_2024.map(f => [f.date, f.name])
+);
+const festivalDays = INDIAN_FESTIVALS_2024.map(f => parseDate(f.date));
+
 
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
@@ -49,10 +64,22 @@ export default function Home() {
   );
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isClient, setIsClient] = useState(false);
+  const [currentTimePosition, setCurrentTimePosition] = useState(0);
   const { toast } = useToast();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsClient(true);
+    const updateCurrentTime = () => {
+      const now = new Date();
+      const position = (now.getHours() - 5 + now.getMinutes() / 60) * 64;
+      setCurrentTimePosition(position);
+    };
+
+    updateCurrentTime();
+    const intervalId = setInterval(updateCurrentTime, 60000); // Update every minute
+
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
@@ -78,6 +105,14 @@ export default function Home() {
     }
   }, [isClient, lists, setLists, activeListId, setActiveListId]);
 
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      // Scroll to a position around the current time, e.g., 2 hours before
+      const scrollPosition = Math.max(0, currentTimePosition - 128);
+      scrollAreaRef.current.scrollTo({ top: scrollPosition, behavior: 'smooth' });
+    }
+  }, [isClient, currentTimePosition]);
+
   const activeList = useMemo(
     () => lists.find(list => list.id === activeListId),
     [lists, activeListId]
@@ -93,6 +128,15 @@ export default function Home() {
     if (!isClient || !activeList) return [];
     return activeList.tasks;
   }, [activeList, isClient]);
+  
+  const todaysTasks = useMemo(() => {
+    return allTasks.filter(task => task.date && isToday(new Date(task.date)));
+  }, [allTasks]);
+
+  const todaysFestival = useMemo(() => {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    return festivalMap.get(todayStr);
+  }, []);
 
   const getTasksForDay = useCallback(
     (day: Date) => {
@@ -102,21 +146,6 @@ export default function Home() {
     },
     [allTasks]
   );
-
-  const handleToggleTask = (taskId: string) => {
-    if (!activeListId) return;
-    const updatedLists = lists.map(list =>
-      list.id === activeListId
-        ? {
-            ...list,
-            tasks: list.tasks.map(task =>
-              task.id === taskId ? { ...task, completed: !task.completed } : task
-            ),
-          }
-        : list
-    );
-    setLists(updatedLists);
-  };
 
   const handleAddTask = (taskDetails: { title: string, description: string, date: Date | undefined, time: string, duration: number }) => {
     if (!activeListId) return false;
@@ -204,7 +233,7 @@ export default function Home() {
            <AddEventDialog onAddTask={handleAddTask} />
         </header>
         <main className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full">
+          <ScrollArea className="h-full" ref={scrollAreaRef}>
             <div className="flex h-full">
               <div className="w-16 flex-shrink-0 text-xs text-center text-muted-foreground">
                 <div className="relative">
@@ -216,7 +245,7 @@ export default function Home() {
                         className="h-16 border-b flex items-center justify-center"
                       >
                         <span className="relative -top-3">
-                          {hour === 24
+                          {hour === 24 || hour === 0
                             ? '12 AM'
                             : hour < 12
                             ? `${hour} AM`
@@ -228,10 +257,15 @@ export default function Home() {
                     ))}
                   </div>
               </div>
-              <div className="grid flex-1 grid-cols-7">
-                {week.map(day => (
-                  <div key={day.toISOString()} className={cn('border-r relative')}>
-                    <div className="sticky top-0 z-10 bg-background border-b p-2 text-center h-[73px]">
+              <div className="grid flex-1 grid-cols-7 relative">
+                {week.map(day => {
+                  const dayOfWeek = getDay(day);
+                  const isSunday = dayOfWeek === 0;
+                  const festival = festivalMap.get(format(day, 'yyyy-MM-dd'));
+
+                  return (
+                  <div key={day.toISOString()} className={cn('border-r relative', isSunday && 'bg-muted/30')}>
+                    <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b p-2 text-center h-[73px]">
                       <p className="text-sm text-muted-foreground">
                         {dayNames[day.getDay()]}
                       </p>
@@ -245,6 +279,11 @@ export default function Home() {
                       >
                         {format(day, 'd')}
                       </p>
+                       {festival && (
+                          <p className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-semibold truncate mt-1">
+                              {festival}
+                          </p>
+                      )}
                     </div>
                     <div className="relative h-full">
                       {/* Background hour lines */}
@@ -264,50 +303,45 @@ export default function Home() {
                           <p className={cn('font-bold', task.completed && 'line-through')}>
                             {task.text}
                           </p>
-                          <p>
-                            {format(new Date(task.date!), 'h:mm a')} ({task.duration} min)
-                          </p>
+                           {task.duration && (
+                              <p>
+                                {format(new Date(task.date!), 'h:mm a')} ({task.duration} min)
+                              </p>
+                            )}
                         </div>
                       ))}
                     </div>
                   </div>
-                ))}
+                )})}
+                 {isToday(currentDate) && (
+                  <div
+                    className="absolute left-0 right-0 h-0.5 bg-red-500 z-20"
+                    style={{ top: `${currentTimePosition + 73}px` }}
+                  >
+                    <div className="absolute -left-1.5 -top-1.5 h-3 w-3 rounded-full bg-red-500"></div>
+                  </div>
+                )}
               </div>
             </div>
           </ScrollArea>
         </main>
       </div>
-      <aside className="w-80 flex-shrink-0 border-l bg-card p-4">
-        <h2 className="text-lg font-semibold tracking-tight mb-4">
-          {activeList?.name || 'My Tasks'}
-        </h2>
-        <ScrollArea className="h-[calc(100vh-100px)]">
-          <div className="space-y-2">
-            {allTasks
-              .sort((a, b) => (a.completed ? 1 : -1) - (b.completed ? 1 : -1) || new Date(a.date || 0).getTime() - new Date(b.date || 0).getTime())
-              .map(task => (
-                <div
-                  key={task.id}
-                  className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted"
-                >
-                  <Checkbox
-                    id={`task-${task.id}`}
-                    checked={task.completed}
-                    onCheckedChange={() => handleToggleTask(task.id)}
-                  />
-                  <label
-                    htmlFor={`task-${task.id}`}
-                    className={cn(
-                      'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-                      task.completed && 'line-through text-muted-foreground'
-                    )}
-                  >
-                    {task.text}
-                  </label>
-                </div>
-              ))}
-          </div>
-        </ScrollArea>
+      <aside className="w-80 flex-shrink-0 border-l bg-card p-4 flex flex-col gap-4">
+        <Card>
+            <CardContent className="p-2">
+                <Calendar
+                    mode="single"
+                    selected={currentDate}
+                    onSelect={(date) => date && setCurrentDate(date)}
+                    className="w-full"
+                    modifiers={{ festival: festivalDays }}
+                    modifiersClassNames={{
+                      festival: 'day-festival'
+                    }}
+                />
+            </CardContent>
+        </Card>
+        <TodayFocus tasks={todaysTasks} festival={todaysFestival} />
       </aside>
     </div>
   );
@@ -325,7 +359,7 @@ function AddEventDialog({ onAddTask }: { onAddTask: (details: { title: string, d
 
   const handleSave = () => {
     const success = onAddTask({ title, description, date, time, duration: parseInt(duration, 10) });
-    if (success) {
+    if (success !== false) {
       setTitle('');
       setDescription('');
       setDate(new Date());
@@ -336,7 +370,8 @@ function AddEventDialog({ onAddTask }: { onAddTask: (details: { title: string, d
   };
 
   return (
-     <Dialog open={isOpen} onOpenChange={setIsOpen}>
+     <>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -411,5 +446,6 @@ function AddEventDialog({ onAddTask }: { onAddTask: (details: { title: string, d
           </DialogFooter>
         </DialogContent>
       </Dialog>
+     </>
   )
 }
