@@ -44,6 +44,7 @@ import { Card, CardContent } from '@/components/ui/card';
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
 
+// Moved outside the component to prevent re-computation on re-renders
 const parseDate = (dateStr: string): Date => {
   const [year, month, day] = dateStr.split('-').map(Number);
   // Using new Date(year, monthIndex, day) is more reliable across timezones
@@ -131,7 +132,7 @@ export default function Home() {
   
   const todaysTasks = useMemo(() => {
     const today = new Date();
-    return allTasks.filter(task => task.date && isSameDay(parseDate(task.date), today));
+    return allTasks.filter(task => task.date && isSameDay(new Date(task.date), today));
   }, [allTasks]);
 
   const todaysFestival = useMemo(() => {
@@ -142,7 +143,7 @@ export default function Home() {
   const getTasksForDay = useCallback(
     (day: Date) => {
       return allTasks
-        .filter(task => task.date && isSameDay(parseDate(task.date), day))
+        .filter(task => task.date && isSameDay(new Date(task.date), day))
         .sort((a, b) => new Date(a.date!).getTime() - new Date(b.date!).getTime());
     },
     [allTasks]
