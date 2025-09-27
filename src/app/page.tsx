@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
@@ -55,7 +56,6 @@ const festivalMap: Map<string, string> = new Map(
   INDIAN_FESTIVALS_2024.map(f => [f.date, f.name])
 );
 const festivalDays = INDIAN_FESTIVALS_2024.map(f => parseDate(f.date));
-
 
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
@@ -336,7 +336,9 @@ export default function Home() {
                     selected={currentDate}
                     onSelect={(date) => date && setCurrentDate(date)}
                     className="w-full"
-                    modifiers={{ festival: festivalDays }}
+                    modifiers={{ 
+                      festival: (day) => festivalDays.some(festivalDay => isSameDay(day, festivalDay))
+                    }}
                     modifiersClassNames={{
                       festival: 'day-festival'
                     }}
