@@ -19,7 +19,6 @@ import {
   setMinutes,
   isToday,
   getDay,
-  parse,
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -47,6 +46,7 @@ const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (mid
 
 const parseDate = (dateStr: string): Date => {
   const [year, month, day] = dateStr.split('-').map(Number);
+  // Using new Date(year, monthIndex, day) is more reliable across timezones
   return new Date(year, month - 1, day);
 };
 
@@ -130,7 +130,8 @@ export default function Home() {
   }, [activeList, isClient]);
   
   const todaysTasks = useMemo(() => {
-    return allTasks.filter(task => task.date && isToday(new Date(task.date)));
+    const today = new Date();
+    return allTasks.filter(task => task.date && isSameDay(parseDate(task.date), today));
   }, [allTasks]);
 
   const todaysFestival = useMemo(() => {
@@ -141,7 +142,7 @@ export default function Home() {
   const getTasksForDay = useCallback(
     (day: Date) => {
       return allTasks
-        .filter(task => task.date && isSameDay(new Date(task.date), day))
+        .filter(task => task.date && isSameDay(parseDate(task.date), day))
         .sort((a, b) => new Date(a.date!).getTime() - new Date(b.date!).getTime());
     },
     [allTasks]
