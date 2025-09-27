@@ -45,7 +45,6 @@ import { Card, CardContent } from '@/components/ui/card';
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
 
-// Moved outside the component to prevent re-computation on re-renders
 const parseDate = (dateStr: string): Date => {
   const [year, month, day] = dateStr.split('-').map(Number);
   // Using new Date(year, monthIndex, day) is more reliable across timezones
@@ -336,11 +335,9 @@ export default function Home() {
                     selected={currentDate}
                     onSelect={(date) => date && setCurrentDate(date)}
                     className="w-full"
-                    modifiers={{ 
-                      festival: (day) => festivalDays.some(festivalDay => isSameDay(day, festivalDay))
-                    }}
+                    modifiers={{ festival: festivalDays }}
                     modifiersClassNames={{
-                      festival: 'day-festival'
+                      festival: 'day-festival',
                     }}
                 />
             </CardContent>
@@ -374,7 +371,6 @@ function AddEventDialog({ onAddTask }: { onAddTask: (details: { title: string, d
   };
 
   return (
-     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
             <Button>
@@ -450,6 +446,5 @@ function AddEventDialog({ onAddTask }: { onAddTask: (details: { title: string, d
           </DialogFooter>
         </DialogContent>
       </Dialog>
-     </>
   )
 }
