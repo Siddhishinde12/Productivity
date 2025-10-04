@@ -41,7 +41,7 @@ import { Label } from '@/components/ui/label';
 import TodayFocus from '@/components/today-focus';
 import { INDIAN_FESTIVALS_2024 } from '@/lib/festivals';
 import { Card, CardContent } from '@/components/ui/card';
-import { DayContent, DayContentProps } from 'react-day-picker';
+import { DayContent, type DayProps } from 'react-day-picker';
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
@@ -208,7 +208,7 @@ export default function Home() {
     return { top: `${top}px`, height: `${height}px` };
   };
   
-  function CustomDay(props: DayContentProps) {
+  function CustomDay(props: DayProps) {
     const isFestival = festivalDays.some(festivalDay => isSameDay(props.date, festivalDay));
     return (
         <div className={cn(isFestival && 'day-festival')}>
@@ -455,5 +455,3 @@ function AddEventDialog({ onAddTask }: { onAddTask: (details: { title: string, d
       </Dialog>
   )
 }
-
-    
