@@ -3,13 +3,14 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import useLocalStorage from '@/hooks/use-local-storage';
-import { type Task, type TodoList as TodoListType } from '@/types';
+import { type Task, type TodoList as TodoListType, type Festival } from '@/types';
 import { Button } from '@/components/ui/button';
 import {
   ChevronLeft,
   ChevronRight,
   Plus,
   Calendar as CalendarIcon,
+  PartyPopper
 } from 'lucide-react';
 import {
   format,
@@ -39,36 +40,31 @@ import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import TodayFocus from '@/components/today-focus';
-import { INDIAN_FESTIVALS_2024 } from '@/lib/festivals';
 import { Card, CardContent } from '@/components/ui/card';
+import { DayContent, type DayProps } from 'react-day-picker';
+import { getIndianFestivals } from '@/ai/flows/get-indian-festivals';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
 
+// Helper to parse date strings as local time
 const parseDate = (dateStr: string): Date => {
   // Create a date at midnight in local timezone
   const [year, month, day] = dateStr.split('-').map(Number);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  // Adjust for local timezone offset to get the correct local date
-  date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-  return date;
+  return new Date(year, month - 1, day, 0, 0, 0);
 };
 
-// Debug log to check the festival data
-console.log('Festival data:', INDIAN_FESTIVALS_2024);
+function CustomDay({ date, festivalMap }: DayProps & { festivalMap: Map<string, string> }) {
+    const festivalName = festivalMap.get(format(date, 'yyyy-MM-dd'));
+    const isFestival = !!festivalName;
 
-const festivalMap: Map<string, string> = new Map(
-  INDIAN_FESTIVALS_2024.map(f => {
-    console.log(`Mapping festival: ${f.date} - ${f.name}`);
-    return [f.date, f.name];
-  })
-);
-
-const festivalDays = INDIAN_FESTIVALS_2024.map(f => {
-  const parsedDate = parseDate(f.date);
-  console.log(`Parsed date for ${f.name}:`, parsedDate);
-  return parsedDate;
-});
+    return (
+        <div className={cn('w-full h-full flex items-center justify-center', isFestival && 'day-festival')}>
+            <DayContent date={date} />
+        </div>
+    )
+}
 
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
@@ -81,6 +77,8 @@ export default function Home() {
   const [currentTimePosition, setCurrentTimePosition] = useState(0);
   const { toast } = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [festivals, setFestivals] = useState<Festival[]>([]);
+  const [isLoadingFestivals, setIsLoadingFestivals] = useState(true);
 
   useEffect(() => {
     setIsClient(true);
@@ -95,6 +93,36 @@ export default function Home() {
 
     return () => clearInterval(intervalId);
   }, []);
+
+  const currentYear = currentDate.getFullYear();
+
+  useEffect(() => {
+      const fetchFestivals = async (year: number) => {
+          try {
+              setIsLoadingFestivals(true);
+              const result = await getIndianFestivals({ year: year.toString() });
+              setFestivals(result.festivals);
+          } catch (error) {
+              console.error("Failed to fetch festivals:", error);
+              toast({
+                  variant: 'destructive',
+                  title: 'Could not load festivals',
+                  description: 'There was an error fetching the festival data.'
+              });
+          } finally {
+              setIsLoadingFestivals(false);
+          }
+      };
+      
+      fetchFestivals(currentYear);
+  }, [currentYear, toast]);
+
+
+  const festivalMap = useMemo(() => {
+      if (!festivals) return new Map();
+      return new Map(festivals.map(f => [f.date, f.name]));
+  }, [festivals]);
+
 
   useEffect(() => {
     if (isClient) {
@@ -151,7 +179,7 @@ export default function Home() {
   const todaysFestival = useMemo(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     return festivalMap.get(todayStr);
-  }, []);
+  }, [festivalMap]);
 
   const getTasksForDay = useCallback(
     (day: Date) => {
@@ -220,6 +248,7 @@ export default function Home() {
 
     return { top: `${top}px`, height: `${height}px` };
   };
+  
 
   if (!isClient) {
     return null;
@@ -276,7 +305,7 @@ export default function Home() {
                 {week.map(day => {
                   const dayOfWeek = getDay(day);
                   const isSunday = dayOfWeek === 0;
-                  const festival = festivalMap.get(format(day, 'yyyy-MM-dd'));
+                  const festivalName = festivalMap.get(format(day, 'yyyy-MM-dd'));
 
                   return (
                   <div key={day.toISOString()} className={cn('border-r relative', isSunday && 'bg-muted/30')}>
@@ -294,9 +323,9 @@ export default function Home() {
                       >
                         {format(day, 'd')}
                       </p>
-                       {festival && (
-                          <p className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-semibold truncate mt-1">
-                              {festival}
+                       {festivalName && (
+                          <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold truncate mt-1">
+                              {festivalName}
                           </p>
                       )}
                     </div>
@@ -344,58 +373,20 @@ export default function Home() {
       <aside className="w-80 flex-shrink-0 border-l bg-card p-4 flex flex-col gap-4">
         <Card>
             <CardContent className="p-2">
-                <Calendar
-                    mode="single"
-                    selected={currentDate}
-                    onSelect={(date) => date && setCurrentDate(date)}
-                    className="w-full"
-                    modifiers={{
-                      festival: festivalDays,
-                    }}
-                    components={{
-                      Day: (props) => {
-                        const { date, displayMonth, ...restProps } = props;
-                        const dateString = format(date, 'yyyy-MM-dd');
-                        const festival = festivalMap.get(dateString);
-                        const isSelected = isSameDay(date, currentDate);
-                        const isToday = isSameDay(date, new Date());
-                        const isCurrentMonth = displayMonth ? 
-                          date.getMonth() === displayMonth.getMonth() : true;
-                        
-                        // Debug log to check festival dates
-                        if (festival) {
-                          console.log('Festival found:', { date: dateString, name: festival });
-                        }
-                        
-                        return (
-                          <div 
-                            {...restProps}
-                            className={cn(
-                              'relative w-8 h-8 flex items-center justify-center rounded-full',
-                              isCurrentMonth ? 'opacity-100' : 'opacity-40',
-                              isSelected 
-                                ? 'bg-primary text-primary-foreground' 
-                                : isToday 
-                                  ? 'bg-accent text-accent-foreground' 
-                                  : 'hover:bg-muted',
-                              props.className
-                            )}
-                          >
-                            {date.getDate()}
-                            {festival && isCurrentMonth && (
-                              <div 
-                                className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
-                                title={festival}
-                              />
-                            )}
-                            {festival && isCurrentMonth && (
-                              <span className="sr-only">{festival}</span>
-                            )}
-                          </div>
-                        );
-                      }
-                    }}
-                />
+                {isLoadingFestivals ? <Skeleton className="w-full h-[298px]" /> :
+                  <Calendar
+                      mode="single"
+                      selected={currentDate}
+                      onSelect={(date) => date && setCurrentDate(date)}
+                      className="w-full"
+                      components={{
+                          Day: (props) => <CustomDay {...props} festivalMap={festivalMap} />
+                      }}
+                      classNames={{
+                        day: "w-full h-9",
+                      }}
+                  />
+                }
             </CardContent>
         </Card>
         <TodayFocus tasks={todaysTasks} festival={todaysFestival} />
