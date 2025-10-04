@@ -2,6 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Calendar Styles */
+.rdp {
+  --rdp-cell-size: 2rem;
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-background-color: hsl(var(--accent));
+  margin: 0;
+}
+
+.rdp-day {
+  position: relative;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_today) {
+  background-color: hsl(var(--muted));
+}
+
+.rdp-day_today:not(.rdp-day_selected) {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  font-weight: 600;
+}
+
+.rdp-day_selected,
+.rdp-day_selected:focus-visible,
+.rdp-day_selected:hover {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  font-weight: 600;
+}
+
+.rdp-day_outside {
+  color: hsl(var(--muted-foreground) / 0.5);
+}
+
+.rdp-day_disabled {
+  color: hsl(var(--muted-foreground) / 0.3);
+  cursor: not-allowed;
+}
+
+/* Festival day indicator */
+.rdp-day_festival::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #8b5cf6, #ec4899);
+}
+
+.rdp-caption_label {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.rdp-nav_button {
+  border-radius: 4px;
+  padding: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.rdp-nav_button:hover {
+  background-color: hsl(var(--muted));
+}
+
 @layer base {
   :root {
     --background: 210 20% 98%;

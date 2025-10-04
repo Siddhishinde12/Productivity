@@ -46,15 +46,29 @@ const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
 
 const parseDate = (dateStr: string): Date => {
+  // Create a date at midnight in local timezone
   const [year, month, day] = dateStr.split('-').map(Number);
-  // Using new Date(year, monthIndex, day) is more reliable across timezones
-  return new Date(year, month - 1, day);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  // Adjust for local timezone offset to get the correct local date
+  date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+  return date;
 };
 
+// Debug log to check the festival data
+console.log('Festival data:', INDIAN_FESTIVALS_2024);
+
 const festivalMap: Map<string, string> = new Map(
-  INDIAN_FESTIVALS_2024.map(f => [f.date, f.name])
+  INDIAN_FESTIVALS_2024.map(f => {
+    console.log(`Mapping festival: ${f.date} - ${f.name}`);
+    return [f.date, f.name];
+  })
 );
-const festivalDays = INDIAN_FESTIVALS_2024.map(f => parseDate(f.date));
+
+const festivalDays = INDIAN_FESTIVALS_2024.map(f => {
+  const parsedDate = parseDate(f.date);
+  console.log(`Parsed date for ${f.name}:`, parsedDate);
+  return parsedDate;
+});
 
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
@@ -335,9 +349,51 @@ export default function Home() {
                     selected={currentDate}
                     onSelect={(date) => date && setCurrentDate(date)}
                     className="w-full"
-                    modifiers={{ festival: festivalDays }}
-                    modifiersClassNames={{
-                      festival: 'day-festival',
+                    modifiers={{
+                      festival: festivalDays,
+                    }}
+                    components={{
+                      Day: (props) => {
+                        const { date, displayMonth, ...restProps } = props;
+                        const dateString = format(date, 'yyyy-MM-dd');
+                        const festival = festivalMap.get(dateString);
+                        const isSelected = isSameDay(date, currentDate);
+                        const isToday = isSameDay(date, new Date());
+                        const isCurrentMonth = displayMonth ? 
+                          date.getMonth() === displayMonth.getMonth() : true;
+                        
+                        // Debug log to check festival dates
+                        if (festival) {
+                          console.log('Festival found:', { date: dateString, name: festival });
+                        }
+                        
+                        return (
+                          <div 
+                            {...restProps}
+                            className={cn(
+                              'relative w-8 h-8 flex items-center justify-center rounded-full',
+                              isCurrentMonth ? 'opacity-100' : 'opacity-40',
+                              isSelected 
+                                ? 'bg-primary text-primary-foreground' 
+                                : isToday 
+                                  ? 'bg-accent text-accent-foreground' 
+                                  : 'hover:bg-muted',
+                              props.className
+                            )}
+                          >
+                            {date.getDate()}
+                            {festival && isCurrentMonth && (
+                              <div 
+                                className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
+                                title={festival}
+                              />
+                            )}
+                            {festival && isCurrentMonth && (
+                              <span className="sr-only">{festival}</span>
+                            )}
+                          </div>
+                        );
+                      }
                     }}
                 />
             </CardContent>
