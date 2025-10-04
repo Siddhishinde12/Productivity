@@ -21,6 +21,7 @@ import {
   setMinutes,
   isToday,
   getDay,
+  startOfMinute,
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -47,12 +48,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (midnight)
-
-// Helper to parse date strings as local time
-const parseDate = (dateStr: string): Date => {
-  const [year, month, day] = dateStr.split('-').map(Number);
-  return new Date(year, month - 1, day, 0, 0, 0);
-};
 
 function CustomDay({ date, festivalMap }: DayProps & { festivalMap: Map<string, string> }) {
     const festivalName = festivalMap.get(format(date, 'yyyy-MM-dd'));
@@ -159,16 +154,52 @@ export default function Home() {
     [lists, activeListId]
   );
 
-  const startOfTheWeek = startOfWeek(currentDate, { weekStartsOn: 0 });
-
-  const week = useMemo(() => {
-    return Array.from({ length: 7 }).map((_, i) => addDays(startOfTheWeek, i));
-  }, [startOfTheWeek]);
-
   const allTasks = useMemo(() => {
     if (!isClient || !activeList) return [];
     return activeList.tasks;
   }, [activeList, isClient]);
+
+   useEffect(() => {
+    if (!isClient) return;
+
+    if (!('Notification' in window)) {
+      console.log('This browser does not support desktop notification');
+      return;
+    }
+
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    
+    const checkTasks = () => {
+        const now = startOfMinute(new Date());
+        
+        allTasks.forEach(task => {
+            if (task.date && !task.completed) {
+                const taskDate = startOfMinute(new Date(task.date));
+                if (taskDate.getTime() === now.getTime()) {
+                     if (Notification.permission === 'granted') {
+                        new Notification('Event Starting!', {
+                            body: `Your event "${task.text}" is starting now.`,
+                            icon: '/logo.svg' 
+                        });
+                    } else {
+                        // Fallback to toast notification
+                        toast({
+                            title: 'Event Starting!',
+                            description: `Your event "${task.text}" is starting now.`,
+                        });
+                    }
+                }
+            }
+        });
+    };
+    
+    const intervalId = setInterval(checkTasks, 60000); // Check every minute
+
+    return () => clearInterval(intervalId);
+
+  }, [isClient, allTasks, toast]);
   
   const todaysTasks = useMemo(() => {
     const today = new Date();
@@ -494,3 +525,5 @@ function AddEventDialog({ onAddTask }: { onAddTask: (details: { title: string, d
       </Dialog>
   )
 }
+
+    
