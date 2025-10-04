@@ -51,7 +51,7 @@ const hours = Array.from({ length: 20 }, (_, i) => i + 5); // 5 AM to 12 AM (mid
 // Helper to parse date strings as local time
 const parseDate = (dateStr: string): Date => {
   const [year, month, day] = dateStr.split('-').map(Number);
-  return new Date(year, month - 1, day);
+  return new Date(year, month - 1, day, 0, 0, 0);
 };
 
 function CustomDay({ date, festivalMap }: DayProps & { festivalMap: Map<string, string> }) {
@@ -59,7 +59,7 @@ function CustomDay({ date, festivalMap }: DayProps & { festivalMap: Map<string, 
     const isFestival = !!festivalName;
 
     return (
-        <div className={cn(isFestival && 'day-festival')}>
+        <div className={cn('w-full h-full flex items-center justify-center', isFestival && 'day-festival')}>
             <DayContent date={date} />
         </div>
     )
@@ -118,11 +118,8 @@ export default function Home() {
 
 
   const festivalMap = useMemo(() => {
+      if (!festivals) return new Map();
       return new Map(festivals.map(f => [f.date, f.name]));
-  }, [festivals]);
-
-  const festivalDays = useMemo(() => {
-    return festivals.map(f => parseDate(f.date));
   }, [festivals]);
 
 
@@ -326,7 +323,7 @@ export default function Home() {
                         {format(day, 'd')}
                       </p>
                        {festivalName && (
-                          <p className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent font-semibold truncate mt-1">
+                          <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold truncate mt-1">
                               {festivalName}
                           </p>
                       )}
@@ -383,6 +380,9 @@ export default function Home() {
                       className="w-full"
                       components={{
                           Day: (props) => <CustomDay {...props} festivalMap={festivalMap} />
+                      }}
+                      classNames={{
+                        day: "w-full h-9",
                       }}
                   />
                 }
