@@ -64,3 +64,8 @@ export type DiaryEntry = {
   mood: Mood;
   imageUrl?: string;
 };
+
+export type Festival = {
+  date: string; // YYYY-MM-DD
+  name: string;
+};
