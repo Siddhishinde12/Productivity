@@ -279,6 +279,10 @@ export default function Home() {
     return { top: `${top}px`, height: `${height}px` };
   };
   
+  const week = useMemo(() => {
+    const start = startOfWeek(currentDate, { weekStartsOn: 0 }); // Sunday
+    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
+  }, [currentDate]);
 
   if (!isClient) {
     return null;
@@ -525,5 +529,3 @@ function AddEventDialog({ onAddTask }: { onAddTask: (details: { title: string, d
       </Dialog>
   )
 }
-
-    
