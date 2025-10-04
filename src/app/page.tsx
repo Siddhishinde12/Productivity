@@ -57,6 +57,15 @@ const festivalMap: Map<string, string> = new Map(
 );
 const festivalDays = INDIAN_FESTIVALS_2024.map(f => parseDate(f.date));
 
+function CustomDay(props: DayProps) {
+  const isFestival = festivalDays.some(festivalDay => isSameDay(props.date, festivalDay));
+  return (
+      <div className={cn(isFestival && 'day-festival')}>
+          <DayContent {...props} />
+      </div>
+  )
+}
+
 export default function Home() {
   const [lists, setLists] = useLocalStorage<TodoListType[]>('todo-lists', []);
   const [activeListId, setActiveListId] = useLocalStorage<string | null>(
@@ -208,14 +217,6 @@ export default function Home() {
     return { top: `${top}px`, height: `${height}px` };
   };
   
-  function CustomDay(props: DayProps) {
-    const isFestival = festivalDays.some(festivalDay => isSameDay(props.date, festivalDay));
-    return (
-        <div className={cn(isFestival && 'day-festival')}>
-            <DayContent {...props} />
-        </div>
-    )
-  }
 
   if (!isClient) {
     return null;
